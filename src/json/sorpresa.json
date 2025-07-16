@@ -1,0 +1,100 @@
+[{
+    "text" : "El ministerio de obras públicas le obliga a nuevas normas de seguridad. Pague 4.000 por cada silla y 11.000 por cada tribuna",
+    "action": {
+        "method": "buildRepairs",
+        "args": [4000, 11000]
+    }
+},{
+    "text" : "Sus concesiones están mal dirigidas. Por ser el primer aviso pague una multa de 2.000",
+    "action": {
+        "method": "pay",
+        "args": [2000]
+    }
+},{
+    "text" : "El club está muy satisfecho de sus servicios cobre 10.000 en concepto de gratificación especial",
+    "action": {
+        "method": "receive",
+        "args": [10000]
+    }
+},{
+    "text" : "¡Es Ud. un lince! Vaya a la casilla de salida y cobre 20.000",
+    "action": {
+        "method": "move",
+        "args": [0]
+    }
+},{
+    "text" : "Vaya al 'Cam Nou' tribuna y aténgase a las consecuencias.",
+    "action": {
+        "method": "move",
+        "args": [40]
+    }
+},{
+    "text" : "Por exceso de taquillaje pague una multa de 1.500",
+    "action": {
+        "method": "pay",
+        "args": [1500]
+    }
+},{
+    "text" : "Por error en sus cuentas la Banca le devuelve 5.000",
+    "action": {
+        "method": "receive",
+        "args": [5000]
+    }
+},{
+    "text" : "Instalacion de luces en el campo pague 15.000",
+    "action": {
+        "method": "pay",
+        "args": [15000]
+    }
+},{
+    "text" : "En unos partidos internacionales los hinchas del equipo contrario le han destrozado sus instalaciones. Pague 2.500 por cada silla y 10.000 por cada tribuna.",
+    "action": {
+        "method": "buildRepairs",
+        "args": [2500, 10000]
+    }
+},{
+    "text" : "Vaya a 'Sarría' tribuna. Si pasa por la casilla de salida cobre 20.000",
+    "action": {
+        "method": "move",
+        "args": [24]
+    }
+},{
+    "text" : "Vaya a Servicios de estadio 'Gorras'. Si pasa por la casilla de salida cobre 20.000",
+    "action": {
+        "method": "move",
+        "args": [16]
+    }
+
+},{
+    "text" : "Vaya a 'La Romareda' tribuna. Si pasa por la casilla de salida cobre 20.000",
+    "action": {
+        "method": "move",
+        "args": [11]
+    }
+},{
+    "text" : "Con motivo de la final de la Copa ingresa 15.000",
+    "action": {
+        "method": "receive",
+        "args": [15000]
+    }
+
+},{
+    "text" : "Injustamente le sañalan con tarjeta roja. Como la decisión del árbitro es inapelable vaya al Banquillo directamente sin cobrar las 20.000",
+    "action": {
+        "method": "move",
+        "args": [13]
+    }
+},{
+    "text" : "Su apelación ha tenido éxito la sanción es anulada. Salga del Banquillo. Esta carta puede conservarse o venderse hasta su uso.",
+    "action": {
+        "method": "handleAppeal",
+        "args": [true]
+    }
+
+},{
+    "text" : "Retroceda tres casilla y cumpla las obligationes que le correspondan",
+    "action": {
+        "method": "move",
+        "args": [-3]
+    }
+}]

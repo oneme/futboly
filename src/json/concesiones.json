@@ -1,0 +1,57 @@
+[{
+    "id": 3,
+    "name" : "Almohadillas",
+    "rents" : [
+        {"title": "si tiene 1 servicio", "rent": 2500},
+        {"title": "si tiene 2 servicios", "rent": 5000},
+        {"title": "si tiene 3 servicios", "rent": 10000},
+        {"title": "si tiene 4 servicios", "rent": 20000}
+    ],
+    "mortgage" : 10000,
+    "price" : 20000,
+    "type" : 2,
+    "path" : "src/assets/dealership/pillows.png",
+    "card" : "src/assets/dealership/card_pillows.png"
+},{
+    "id": 11,
+    "name" : "Gorras",
+    "rents" : [
+        {"title": "si tiene 1 servicio", "rent": 2500},
+        {"title": "si tiene 2 servicios", "rent": 5000},
+        {"title": "si tiene 3 servicios", "rent": 10000},
+        {"title": "si tiene 4 servicios", "rent": 20000}
+    ],
+    "mortgage" : 10000,
+    "price" : 20000,
+    "type" : 2,
+    "path" : "src/assets/dealership/caps.png",
+    "card" : "src/assets/dealership/card_caps.png"
+},{
+    "id": 18,
+    "name" : "Bares",
+    "rents" : [
+        {"title": "si tiene 1 servicio", "rent": 2500},
+        {"title": "si tiene 2 servicios", "rent": 5000},
+        {"title": "si tiene 3 servicios", "rent": 10000},
+        {"title": "si tiene 4 servicios", "rent": 20000}
+    ],
+    "mortgage" : 10000,
+    "price" : 20000,
+    "type" : 2,
+    "path" : "src/assets/dealership/bars.png",
+    "card" : "src/assets/dealership/card_bars.png"
+},{
+    "id": 26,
+    "name" : "Publicidad",
+    "rents" : [
+        {"title": "si tiene 1 servicio", "rent": 2500},
+        {"title": "si tiene 2 servicios", "rent": 5000},
+        {"title": "si tiene 3 servicios", "rent": 10000},
+        {"title": "si tiene 4 servicios", "rent": 20000}
+    ],
+    "mortgage" : 10000,
+    "price" : 20000,
+    "type" : 2,
+    "path" : "src/assets/dealership/ads.png",
+    "card" : "src/assets/dealership/card_ads.png"
+}]

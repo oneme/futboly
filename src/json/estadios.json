@@ -1,0 +1,508 @@
+[
+  {
+    "id": 1,
+    "name": "Benito Villamarín",
+    "team": "Real Betis",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 200},
+      {"title": "con 1 silla", "rent": 1000},
+      {"title": "con 2 sillas", "rent": 3000},
+      {"title": "con 3 sillas", "rent": 9000},
+      {"title": "con 4 sillas", "rent": 16000},
+      {"title": "con tribuna", "rent": 25000}
+    ],
+    "mortgage": 3000,
+    "build": 5000,
+    "price": 6000,
+    "type": 0,
+    "path": "src/assets/stadiums/benitoVillamarinGeneral.png",
+    "colors": {
+      "top": "bg-green-1000,bg-white",
+      "bottom": "bg-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 2,
+    "name": "Benito Villamarín",
+    "team": "Real Betis",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 500},
+      {"title": "con 1 silla", "rent": 2200},
+      {"title": "con 2 sillas", "rent": 6600},
+      {"title": "con 3 sillas", "rent": 17000},
+      {"title": "con 4 sillas", "rent": 25000},
+      {"title": "con tribuna", "rent": 37000}
+    ],
+    "mortgage": 4000,
+    "build": 5000,
+    "price": 8000,
+    "type": 1,
+    "path": "src/assets/stadiums/benitoVillamarinTribuna.png",
+    "colors": {
+      "top": "bg-green-1000,bg-white",
+      "bottom": "bg-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 4,
+    "name": "El Molinón",
+    "team": "Sporting Gijón",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 800},
+      {"title": "con 1 silla", "rent": 3400},
+      {"title": "con 2 sillas", "rent": 10200},
+      {"title": "con 3 sillas", "rent": 25000},
+      {"title": "con 4 sillas", "rent": 36000},
+      {"title": "con tribuna", "rent": 49000}
+    ],
+    "mortgage": 5000,
+    "build": 5000,
+    "price": 10000,
+    "type": 0,
+    "path": "src/assets/stadiums/molinonGeneral.png",
+    "colors": {
+      "top": "bg-red-1000,bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 5,
+    "name": "El Molinón",
+    "team": "Sporting Gijón",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 1100},
+      {"title": "con 1 silla", "rent": 4600},
+      {"title": "con 2 sillas", "rent": 13800},
+      {"title": "con 3 sillas", "rent": 33000},
+      {"title": "con 4 sillas", "rent": 45000},
+      {"title": "con tribuna", "rent": 61000}
+    ],
+    "mortgage": 6000,
+    "build": 5000,
+    "price": 12000,
+    "type": 1,
+    "path": "src/assets/stadiums/molinonTribuna.png",
+    "colors": {
+      "top": "bg-red-1000,bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 6,
+    "name": "La Romareda",
+    "team": "Real Zaragoza",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 1400},
+      {"title": "con 1 silla", "rent": 5000},
+      {"title": "con 2 sillas", "rent": 17400},
+      {"title": "con 3 sillas", "rent": 41000},
+      {"title": "con 4 sillas", "rent": 56000},
+      {"title": "con tribuna", "rent": 73000}
+    ],
+    "mortgage": 7000,
+    "build": 7000,
+    "price": 14000,
+    "type": 0,
+    "path": "src/assets/stadiums/romaredaGeneral.png",
+    "colors": {
+      "top": "bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 1
+    }
+  },
+  {
+    "id": 7,
+    "name": "La Romareda",
+    "team": "Real Zaragoza",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 1700},
+      {"title": "con 1 silla", "rent": 7000},
+      {"title": "con 2 sillas", "rent": 21000},
+      {"title": "con 3 sillas", "rent": 49000},
+      {"title": "con 4 sillas", "rent": 65000},
+      {"title": "con tribuna", "rent": 85000}
+    ],
+    "mortgage": 8000,
+    "build": 7000,
+    "price": 16000,
+    "type": 1,
+    "path": "src/assets/stadiums/romaredaTribuna.png",
+    "colors": {
+      "top": "bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 1
+    }
+  },
+  {
+    "id": 9,
+    "name": "San Mames",
+    "team": "Ath. Bilbao",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 2000},
+      {"title": "con 1 silla", "rent": 8200},
+      {"title": "con 2 sillas", "rent": 24600},
+      {"title": "con 3 sillas", "rent": 57000},
+      {"title": "con 4 sillas", "rent": 76000},
+      {"title": "con tribuna", "rent": 97000}
+    ],
+    "mortgage": 9000,
+    "build": 10000,
+    "price": 18000,
+    "type": 0,
+    "path": "src/assets/stadiums/sanMamesGeneral.png",
+    "colors": {
+      "top": "bg-red-1000,bg-white",
+      "bottom": "bg-black text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 10,
+    "name": "San Mames",
+    "team": "Ath. Bilbao",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 2300},
+      {"title": "con 1 silla", "rent": 9400},
+      {"title": "con 2 sillas", "rent": 28200},
+      {"title": "con 3 sillas", "rent": 65000},
+      {"title": "con 4 sillas", "rent": 85000},
+      {"title": "con tribuna", "rent": 109000}
+    ],
+    "mortgage": 10000,
+    "build": 10000,
+    "price": 20000,
+    "type": 1,
+    "path": "src/assets/stadiums/sanMamesTribuna.png",
+    "colors": {
+      "top": "bg-red-1000,bg-white",
+      "bottom": "bg-black text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 12,
+    "name": "Sánchez Pizjuan",
+    "team": "Sevilla F.C.",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 2600},
+      {"title": "con 1 silla", "rent": 10600},
+      {"title": "con 2 sillas", "rent": 31800},
+      {"title": "con 3 sillas", "rent": 73000},
+      {"title": "con 4 sillas", "rent": 96000},
+      {"title": "con tribuna", "rent": 121000}
+    ],
+    "mortgage": 11000,
+    "build": 10000,
+    "price": 22000,
+    "type": 0,
+    "path": "src/assets/stadiums/sanchezPizJuanGeneral.png",
+    "colors": {
+      "top": "bg-red-1100",
+      "bottom": "",
+      "style": 3
+    }
+  },
+  {
+    "id": 13,
+    "name": "Sánchez Pizjuan",
+    "team": "Sevilla F.C.",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 2900},
+      {"title": "con 1 silla", "rent": 11800},
+      {"title": "con 2 sillas", "rent": 35400},
+      {"title": "con 3 sillas", "rent": 81000},
+      {"title": "con 4 sillas", "rent": 105000},
+      {"title": "con tribuna", "rent": 133000}
+    ],
+    "mortgage": 12000,
+    "build": 10000,
+    "price": 24000,
+    "type": 1,
+    "path": "src/assets/stadiums/sanchezPizJuanTribuna.png",
+    "colors": {
+      "top": "bg-red-1100",
+      "bottom": "",
+      "style": 3
+    }
+  },
+  {
+    "id": 14,
+    "name": "Vicente Calderón",
+    "team": "At. Madrid",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 3200},
+      {"title": "con 1 silla", "rent": 13000},
+      {"title": "con 2 sillas", "rent": 39000},
+      {"title": "con 3 sillas", "rent": 89000},
+      {"title": "con 4 sillas", "rent": 116000},
+      {"title": "con tribuna", "rent": 145000}
+    ],
+    "mortgage": 13000,
+    "build": 12000,
+    "price": 26000,
+    "type": 0,
+    "path": "src/assets/stadiums/calderonGeneral.png",
+    "colors": {
+      "top": "bg-red-600,bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 15,
+    "name": "Vicente Calderón",
+    "team": "At. Madrid",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 3500},
+      {"title": "con 1 silla", "rent": 14200},
+      {"title": "con 2 sillas", "rent": 42600},
+      {"title": "con 3 sillas", "rent": 97000},
+      {"title": "con 4 sillas", "rent": 125000},
+      {"title": "con tribuna", "rent": 157000}
+    ],
+    "mortgage": 14000,
+    "build": 12000,
+    "price": 28000,
+    "type": 1,
+    "path": "src/assets/stadiums/calderonTribuna.png",
+    "colors": {
+      "top": "bg-red-600,bg-white",
+      "bottom": "bg-sky-1200 text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 16,
+    "name": "Sarría",
+    "team": "R.C.D Español",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 3800},
+      {"title": "con 1 silla", "rent": 15400},
+      {"title": "con 2 sillas", "rent": 46200},
+      {"title": "con 3 sillas", "rent": 105000},
+      {"title": "con 4 sillas", "rent": 136000},
+      {"title": "con tribuna", "rent": 169000}
+    ],
+    "mortgage": 15000,
+    "build": 15000,
+    "price": 30000,
+    "type": 0,
+    "path": "src/assets/stadiums/sarriaGeneral.png",
+    "colors": {
+      "top": "bg-sky-1100,bg-white",
+      "bottom": "bg-sky-1100 text-white",
+      "style": 5
+    }
+  },
+  {
+    "id": 17,
+    "name": "Sarría",
+    "team": "R.C.D Español",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 4100},
+      {"title": "con 1 silla", "rent": 16600},
+      {"title": "con 2 sillas", "rent": 49800},
+      {"title": "con 3 sillas", "rent": 113000},
+      {"title": "con 4 sillas", "rent": 145000},
+      {"title": "con tribuna", "rent": 181000}
+    ],
+    "mortgage": 16000,
+    "build": 15000,
+    "price": 32000,
+    "type": 1,
+    "path": "src/assets/stadiums/sarriaTribuna.png",
+    "colors": {
+      "top": "bg-sky-1100,bg-white",
+      "bottom": "bg-sky-1100 text-white",
+      "style": 5
+    }
+  },
+  {
+    "id": 19,
+    "name": "Luis Casanova",
+    "team": "Valencia C.F.",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 4400},
+      {"title": "con 1 silla", "rent": 17800},
+      {"title": "con 2 sillas", "rent": 53400},
+      {"title": "con 3 sillas", "rent": 121000},
+      {"title": "con 4 sillas", "rent": 156000},
+      {"title": "con tribuna", "rent": 193000}
+    ],
+    "mortgage": 17000,
+    "build": 15000,
+    "price": 34000,
+    "type": 0,
+    "path": "src/assets/stadiums/luisCasanovaGeneral.png",
+    "colors": {
+      "top": "bg-white",
+      "bottom": "bg-white text-black",
+      "style": 1
+    }
+  },
+  {
+    "id": 20,
+    "name": "Luis Casanova",
+    "team": "Valencia C.F.",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 4700},
+      {"title": "con 1 silla", "rent": 19000},
+      {"title": "con 2 sillas", "rent": 57000},
+      {"title": "con 3 sillas", "rent": 129000},
+      {"title": "con 4 sillas", "rent": 165000},
+      {"title": "con tribuna", "rent": 205000}
+    ],
+    "mortgage": 18000,
+    "build": 15000,
+    "price": 36000,
+    "type": 1,
+    "path": "src/assets/stadiums/luisCasanovaTribuna.png",
+    "colors": {
+      "top": "bg-white",
+      "bottom": "bg-white text-black",
+      "style": 1
+    }
+  },
+  {
+    "id": 22,
+    "name": "Atocha",
+    "team": "Real Sociedad",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 5000},
+      {"title": "con 1 silla", "rent": 20200},
+      {"title": "con 2 sillas", "rent": 60600},
+      {"title": "con 3 sillas", "rent": 137000},
+      {"title": "con 4 sillas", "rent": 176000},
+      {"title": "con tribuna", "rent": 217000}
+    ],
+    "mortgage": 19000,
+    "build": 18000,
+    "price": 38000,
+    "type": 0,
+    "path": "src/assets/stadiums/atochaGeneral.png",
+    "colors": {
+      "top": "bg-sky-800,bg-white",
+      "bottom": "bg-white text-black",
+      "style": 7
+    }
+  },
+  {
+    "id": 23,
+    "name": "Atocha",
+    "team": "Real Sociedad",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 5300},
+      {"title": "con 1 silla", "rent": 21400},
+      {"title": "con 2 sillas", "rent": 64200},
+      {"title": "con 3 sillas", "rent": 145000},
+      {"title": "con 4 sillas", "rent": 185000},
+      {"title": "con tribuna", "rent": 229000}
+    ],
+    "mortgage": 20000,
+    "build": 18000,
+    "price": 40000,
+    "type": 1,
+    "path": "src/assets/stadiums/atochaTribuna.png",
+    "colors": {
+      "top": "bg-sky-800,bg-white",
+      "bottom": "bg-white text-black",
+      "style": 7
+    }
+  },
+  {
+    "id": 24,
+    "name": "Santiago Bernabeu",
+    "team": "Real Madrid",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 5600},
+      {"title": "con 1 silla", "rent": 22600},
+      {"title": "con 2 sillas", "rent": 67800},
+      {"title": "con 3 sillas", "rent": 153000},
+      {"title": "con 4 sillas", "rent": 196000},
+      {"title": "con tribuna", "rent": 241000}
+    ],
+    "mortgage": 21000,
+    "build": 20000,
+    "price": 42000,
+    "type": 0,
+    "path": "src/assets/stadiums/santiagoBernabeuGeneral.png",
+    "colors": {
+      "top": "bg-purple-1000",
+      "bottom": "",
+      "style": 3
+    }
+  },
+  {
+    "id": 25,
+    "name": "Santiago Bernabeu",
+    "team": "Real Madrid",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 5900},
+      {"title": "con 1 silla", "rent": 23800},
+      {"title": "con 2 sillas", "rent": 71400},
+      {"title": "con 3 sillas", "rent": 161000},
+      {"title": "con 4 sillas", "rent": 205000},
+      {"title": "con tribuna", "rent": 233000}
+    ],
+    "mortgage": 22000,
+    "build": 20000,
+    "price": 44000,
+    "type": 1,
+    "path": "src/assets/stadiums/santiagoBernabeuTribuna.png",
+    "colors": {
+      "top": "bg-purple-1000",
+      "bottom": "",
+      "style": 3
+    }
+  },
+  {
+    "id": 27,
+    "name": "Camp Nou",
+    "team": "F.C. Barcelona",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 6200},
+      {"title": "con 1 silla", "rent": 25000},
+      {"title": "con 2 sillas", "rent": 75000},
+      {"title": "con 3 sillas", "rent": 169000},
+      {"title": "con 4 sillas", "rent": 216000},
+      {"title": "con tribuna", "rent": 265000}
+    ],
+    "mortgage": 23000,
+    "build": 20000,
+    "price": 46000,
+    "type": 0,
+    "path": "src/assets/stadiums/nouCampGeneral.png",
+    "colors": {
+      "top": "bg-sky-1000,bg-red-1000",
+      "bottom": "bg-sky-1000 text-white",
+      "style": 7
+    }
+  },
+  {
+    "id": 28,
+    "name": "Camp Nou",
+    "team": "F.C. Barcelona",
+    "rents": [
+      {"title": "zona sin asientos", "rent": 6500},
+      {"title": "con 1 silla", "rent": 26200},
+      {"title": "con 2 sillas", "rent": 78600},
+      {"title": "con 3 sillas", "rent": 177000},
+      {"title": "con 4 sillas", "rent": 225000},
+      {"title": "con tribuna", "rent": 277000}
+    ],
+    "mortgage": 24000,
+    "build": 20000,
+    "price": 48000,
+    "type": 1,
+    "path": "src/assets/stadiums/nouCampTribuna.png",
+    "colors": {
+      "top": "bg-sky-1000,bg-red-1000",
+      "bottom": "bg-sky-1000 text-white",
+      "style": 7
+    }
+  }
+]

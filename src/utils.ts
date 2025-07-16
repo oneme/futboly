@@ -1,0 +1,2 @@
+export const formatCurrency = (amount: number) => amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const newPrice = (price: number, coefficient = 35.79): number => Math.ceil((price / 166.386) * (1 + coefficient));

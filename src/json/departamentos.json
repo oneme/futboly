@@ -1,0 +1,61 @@
+[{
+    "name" : "Salida",
+    "quantity" : 20000,
+    "type": 0,
+    "path" : "src/assets/departments/start.png"
+},{
+    "name" : "Federación",
+    "quantity" : 0,
+    "type": 1,
+    "path" : "src/assets/departments/federation.png"
+},{
+    "name" : "Multa y Cierre del Estadio",
+    "quantity" : 20000,
+    "type": 0,
+    "path" : "src/assets/departments/close.png"
+},{
+    "name" : "Sorpresa",
+    "quantity" : 0,
+    "type": 2,
+    "path" : "src/assets/departments/surprise.png"
+},{
+    "name" : "Banquillo",
+    "quantity" : 5000,
+    "type": 0,
+    "path" : "src/assets/departments/bench.png"
+},{
+    "name" : "Federación",
+    "quantity" : 0,
+    "type": 1,
+    "path" : "src/assets/departments/federation_left.png"
+},{
+    "name" : "Parking",
+    "quantity" : 1000,
+    "type": 0,
+    "path" : "src/assets/departments/parking.png"
+},{
+    "name" : "Sorpresa",
+    "quantity" : 0,
+    "type": 2,
+    "path" : "src/assets/departments/surprise.png"
+},{
+    "name" : "Federación",
+    "quantity" : 0,
+    "type": 1,
+    "path" : "src/assets/departments/federation.png"
+},{
+    "name" : "Vaya al Banquillo",
+    "quantity" : 0,
+    "type": 0,
+    "path" : "src/assets/departments/go_to_bench.png"
+},{
+    "name" : "Sorpresa",
+    "quantity" : 0,
+    "type": 2,
+    "path" : "src/assets/departments/surprise_right.png"
+},{
+    "name" : "Dia del Club",
+    "quantity" : 10000,
+    "type": 0,
+    "path" : "src/assets/departments/club_day.png"
+}]

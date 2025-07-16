@@ -1,0 +1,97 @@
+[{
+    "text" : "Sitúese en la casilla de salida cobre los 20.000. Esperamos que su olfato le permita conseguir nuevas concesiones",
+    "action": {
+        "method": "move",
+        "args": [0]
+    }
+},{
+    "text" : "Por ceder su campo para un partido internacional se le subvenciona con 5.000",
+    "action": {
+        "method": "receive",
+        "args": [5000]
+    }
+},{
+    "text" : "Por derechos de entrenamiento del equipo internacional reciba 1.000",
+    "action": {
+        "method": "receive",
+        "args": [1000]
+    }
+},{
+    "text" : "Con motivo del aniversario del Club reciba de cada competidor un presente de 1.000",
+    "action": {
+        "method": "collectForEachPlayer",
+        "args": [1000]
+    }
+},{
+    "text" : "En concepto de ayuda del Consejo Superior de Deportes reciba 1.000",
+    "action": {
+        "method": "receive",
+        "args": [1000]
+    }
+},{
+    "text" : "Para el homenaje del portero internacional reciba 2.500",
+    "action": {
+        "method": "receive",
+        "args": [2500]
+    }
+},{
+    "text" : "Le devuelven el depósito de principio de temporada 2.000",
+    "action": {
+        "method": "receive",
+        "args": [2000]
+    }
+},{
+    "text" : "Efectue una visita secreta al campo del Betis (casilla nº 1). Si está libre tiene una opción de compra. En caso contrario abone sus alquileres de acuerdo con la situación de su concesionario.",
+    "action": {
+        "method": "move",
+        "args": [2]
+    }
+},{
+    "text" : "Inspección de la Federación. Por irregularidades de sus concesiones pague una multa de 5.000.",
+    "action": {
+        "method": "receive",
+        "args": [5000]
+    }
+},{
+    "text" : "Por lanzar almohadillas al campo el árbitro le sanciona con tarjeta roja. Vaya al Banquillo, directamente y sin cobrar las 20.000",
+    "action": {
+        "method": "move",
+        "args": [13]
+    }
+},{
+    "text" : "Abone los servicios médicos del Club 10.000",
+    "action": {
+        "method": "pay",
+        "args": [10000]
+    }
+},{
+    "text" : "Por exceso en el cobro de alquileres pague una multa de 1.000. Si Ud. es aficionado al riesgo cambie esta multa por una carta de sorpresa y siga obligatoriamente sus intrucciones.",
+    "action": {
+        "method": "chooseRisk",
+        "args": []
+    }
+},{
+    "text" : "Su apelación ha tenido éxito la sanción es anulada. Salga del Banquillo. Esta carta puede conservarse o venderse hasta su uso.",
+    "action": {
+        "method": "handleAppeal",
+        "args": [true]
+    }
+},{
+    "text" : "Se le gratifica por su labor en pro del deporte, cobre 1.000",
+    "action": {
+        "method": "receive",
+        "args": [1000]
+    }
+},{
+    "text" : "Multa por incidentes en el campo, pague 5.000",
+    "action": {
+        "method": "pay",
+        "args": [5000]
+    }
+},{
+    "text" : "Partido homenaje por la obtención del título Europeo. Por derechos de televisión cobre 20.000",
+    "action": {
+        "method": "receive",
+        "args": [20000]
+    }
+}]  
