@@ -66,14 +66,14 @@ const getBoxTribune = computed(() => {
   <div class="relative">
     <img v-for="(chair, index) in getBoxChairs"
          :key="index"
-         :src="`src/assets/buildings/chair${chair.path}.svg`"
+         :src="`src/assets/buildings/chair${chair.path}.webp`"
          alt="chair"
          class="absolute w-8 h-8"
          :class="chair.class"
          v-if="stadium?.chairs < 5"
     />
     <img
-        :src="`src/assets/buildings/tribune${getBoxTribune.path}.svg`"
+        :src="`src/assets/buildings/tribune${getBoxTribune.path}.webp`"
         alt="tribune"
         class="absolute w-12 h-12"
         :class="getBoxTribune.class"
