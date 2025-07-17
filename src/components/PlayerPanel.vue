@@ -21,8 +21,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  dice1Path: 'src/assets/dices/1.png',
-  dice2Path: 'src/assets/dices/1.png'
+  dice1Path: 'src/assets/dices/1.webp',
+  dice2Path: 'src/assets/dices/1.webp'
 });
 
 const buttons = [

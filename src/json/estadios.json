@@ -15,7 +15,7 @@
     "build": 5000,
     "price": 6000,
     "type": 0,
-    "path": "src/assets/stadiums/benitoVillamarinGeneral.png",
+    "path": "src/assets/stadiums/benitoVillamarinGeneral.webp",
     "colors": {
       "top": "bg-green-1000,bg-white",
       "bottom": "bg-white",
@@ -38,7 +38,7 @@
     "build": 5000,
     "price": 8000,
     "type": 1,
-    "path": "src/assets/stadiums/benitoVillamarinTribuna.png",
+    "path": "src/assets/stadiums/benitoVillamarinTribuna.webp",
     "colors": {
       "top": "bg-green-1000,bg-white",
       "bottom": "bg-white",
@@ -61,7 +61,7 @@
     "build": 5000,
     "price": 10000,
     "type": 0,
-    "path": "src/assets/stadiums/molinonGeneral.png",
+    "path": "src/assets/stadiums/molinonGeneral.webp",
     "colors": {
       "top": "bg-red-1000,bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -84,7 +84,7 @@
     "build": 5000,
     "price": 12000,
     "type": 1,
-    "path": "src/assets/stadiums/molinonTribuna.png",
+    "path": "src/assets/stadiums/molinonTribuna.webp",
     "colors": {
       "top": "bg-red-1000,bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -107,7 +107,7 @@
     "build": 7000,
     "price": 14000,
     "type": 0,
-    "path": "src/assets/stadiums/romaredaGeneral.png",
+    "path": "src/assets/stadiums/romaredaGeneral.webp",
     "colors": {
       "top": "bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -130,7 +130,7 @@
     "build": 7000,
     "price": 16000,
     "type": 1,
-    "path": "src/assets/stadiums/romaredaTribuna.png",
+    "path": "src/assets/stadiums/romaredaTribuna.webp",
     "colors": {
       "top": "bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -153,7 +153,7 @@
     "build": 10000,
     "price": 18000,
     "type": 0,
-    "path": "src/assets/stadiums/sanMamesGeneral.png",
+    "path": "src/assets/stadiums/sanMamesGeneral.webp",
     "colors": {
       "top": "bg-red-1000,bg-white",
       "bottom": "bg-black text-white",
@@ -176,7 +176,7 @@
     "build": 10000,
     "price": 20000,
     "type": 1,
-    "path": "src/assets/stadiums/sanMamesTribuna.png",
+    "path": "src/assets/stadiums/sanMamesTribuna.webp",
     "colors": {
       "top": "bg-red-1000,bg-white",
       "bottom": "bg-black text-white",
@@ -199,7 +199,7 @@
     "build": 10000,
     "price": 22000,
     "type": 0,
-    "path": "src/assets/stadiums/sanchezPizJuanGeneral.png",
+    "path": "src/assets/stadiums/sanchezPizJuanGeneral.webp",
     "colors": {
       "top": "bg-red-1100",
       "bottom": "",
@@ -222,7 +222,7 @@
     "build": 10000,
     "price": 24000,
     "type": 1,
-    "path": "src/assets/stadiums/sanchezPizJuanTribuna.png",
+    "path": "src/assets/stadiums/sanchezPizJuanTribuna.webp",
     "colors": {
       "top": "bg-red-1100",
       "bottom": "",
@@ -245,7 +245,7 @@
     "build": 12000,
     "price": 26000,
     "type": 0,
-    "path": "src/assets/stadiums/calderonGeneral.png",
+    "path": "src/assets/stadiums/calderonGeneral.webp",
     "colors": {
       "top": "bg-red-600,bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -268,7 +268,7 @@
     "build": 12000,
     "price": 28000,
     "type": 1,
-    "path": "src/assets/stadiums/calderonTribuna.png",
+    "path": "src/assets/stadiums/calderonTribuna.webp",
     "colors": {
       "top": "bg-red-600,bg-white",
       "bottom": "bg-sky-1200 text-white",
@@ -291,7 +291,7 @@
     "build": 15000,
     "price": 30000,
     "type": 0,
-    "path": "src/assets/stadiums/sarriaGeneral.png",
+    "path": "src/assets/stadiums/sarriaGeneral.webp",
     "colors": {
       "top": "bg-sky-1100,bg-white",
       "bottom": "bg-sky-1100 text-white",
@@ -314,7 +314,7 @@
     "build": 15000,
     "price": 32000,
     "type": 1,
-    "path": "src/assets/stadiums/sarriaTribuna.png",
+    "path": "src/assets/stadiums/sarriaTribuna.webp",
     "colors": {
       "top": "bg-sky-1100,bg-white",
       "bottom": "bg-sky-1100 text-white",
@@ -337,7 +337,7 @@
     "build": 15000,
     "price": 34000,
     "type": 0,
-    "path": "src/assets/stadiums/luisCasanovaGeneral.png",
+    "path": "src/assets/stadiums/luisCasanovaGeneral.webp",
     "colors": {
       "top": "bg-white",
       "bottom": "bg-white text-black",
@@ -360,7 +360,7 @@
     "build": 15000,
     "price": 36000,
     "type": 1,
-    "path": "src/assets/stadiums/luisCasanovaTribuna.png",
+    "path": "src/assets/stadiums/luisCasanovaTribuna.webp",
     "colors": {
       "top": "bg-white",
       "bottom": "bg-white text-black",
@@ -383,7 +383,7 @@
     "build": 18000,
     "price": 38000,
     "type": 0,
-    "path": "src/assets/stadiums/atochaGeneral.png",
+    "path": "src/assets/stadiums/atochaGeneral.webp",
     "colors": {
       "top": "bg-sky-800,bg-white",
       "bottom": "bg-white text-black",
@@ -406,7 +406,7 @@
     "build": 18000,
     "price": 40000,
     "type": 1,
-    "path": "src/assets/stadiums/atochaTribuna.png",
+    "path": "src/assets/stadiums/atochaTribuna.webp",
     "colors": {
       "top": "bg-sky-800,bg-white",
       "bottom": "bg-white text-black",
@@ -429,7 +429,7 @@
     "build": 20000,
     "price": 42000,
     "type": 0,
-    "path": "src/assets/stadiums/santiagoBernabeuGeneral.png",
+    "path": "src/assets/stadiums/santiagoBernabeuGeneral.webp",
     "colors": {
       "top": "bg-purple-1000",
       "bottom": "",
@@ -452,7 +452,7 @@
     "build": 20000,
     "price": 44000,
     "type": 1,
-    "path": "src/assets/stadiums/santiagoBernabeuTribuna.png",
+    "path": "src/assets/stadiums/santiagoBernabeuTribuna.webp",
     "colors": {
       "top": "bg-purple-1000",
       "bottom": "",
@@ -475,7 +475,7 @@
     "build": 20000,
     "price": 46000,
     "type": 0,
-    "path": "src/assets/stadiums/nouCampGeneral.png",
+    "path": "src/assets/stadiums/nouCampGeneral.webp",
     "colors": {
       "top": "bg-sky-1000,bg-red-1000",
       "bottom": "bg-sky-1000 text-white",
@@ -498,7 +498,7 @@
     "build": 20000,
     "price": 48000,
     "type": 1,
-    "path": "src/assets/stadiums/nouCampTribuna.png",
+    "path": "src/assets/stadiums/nouCampTribuna.webp",
     "colors": {
       "top": "bg-sky-1000,bg-red-1000",
       "bottom": "bg-sky-1000 text-white",

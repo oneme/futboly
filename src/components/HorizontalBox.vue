@@ -30,9 +30,9 @@ const isDealership = computed(() => props.box?.kind instanceof Dealership);
       <div class="h-[95px] w-[130px] bg-cover bg-no-repeat" :class="{'justify-self-end': position === Position.RIGHT}" :style="`background-image: url('${box.kind.path}');`"
            @mouseover="showDetail = box?.id" @mouseleave="showDetail = null">
         <div class="flex flex-col w-full" :class="{'items-end': position === Position.RIGHT}">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12 "
+          <img src="/src/assets/player-1.webp" alt="player-1" class="size-10"
                v-show="box?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12 "
+          <img src="/src/assets/player-2.webp" alt="player-2" class="size-10"
                v-show="box?.id == gameStore.players[1]?.pos">
         </div>
       </div>

@@ -8,8 +8,8 @@
     "mortgage" : 7500,
     "price" : 15000,
     "type" : 3,
-    "path" : "src/assets/clubservices/sport_kit.png",
-    "card" : "src/assets/clubservices/card_sport_kit.png"
+    "path" : "src/assets/clubservices/sport_kit.webp",
+    "card" : "src/assets/clubservices/card_sport_kit.webp"
 },{
     "id": 21,
     "name" : "Autocares",
@@ -20,6 +20,6 @@
     "mortgage" : 7500,
     "price" : 15000,
     "type" : 3,
-    "path" : "src/assets/clubservices/buses.png",
-    "card" : "src/assets/clubservices/card_buses.png"
+    "path" : "src/assets/clubservices/buses.webp",
+    "card" : "src/assets/clubservices/card_buses.webp"
 }]

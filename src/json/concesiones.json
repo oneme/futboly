@@ -10,8 +10,8 @@
     "mortgage" : 10000,
     "price" : 20000,
     "type" : 2,
-    "path" : "src/assets/dealership/pillows.png",
-    "card" : "src/assets/dealership/card_pillows.png"
+    "path" : "src/assets/dealership/pillows.webp",
+    "card" : "src/assets/dealership/card_pillows.webp"
 },{
     "id": 11,
     "name" : "Gorras",
@@ -24,8 +24,8 @@
     "mortgage" : 10000,
     "price" : 20000,
     "type" : 2,
-    "path" : "src/assets/dealership/caps.png",
-    "card" : "src/assets/dealership/card_caps.png"
+    "path" : "src/assets/dealership/caps.webp",
+    "card" : "src/assets/dealership/card_caps.webp"
 },{
     "id": 18,
     "name" : "Bares",
@@ -38,8 +38,8 @@
     "mortgage" : 10000,
     "price" : 20000,
     "type" : 2,
-    "path" : "src/assets/dealership/bars.png",
-    "card" : "src/assets/dealership/card_bars.png"
+    "path" : "src/assets/dealership/bars.webp",
+    "card" : "src/assets/dealership/card_bars.webp"
 },{
     "id": 26,
     "name" : "Publicidad",
@@ -52,6 +52,6 @@
     "mortgage" : 10000,
     "price" : 20000,
     "type" : 2,
-    "path" : "src/assets/dealership/ads.png",
-    "card" : "src/assets/dealership/card_ads.png"
+    "path" : "src/assets/dealership/ads.webp",
+    "card" : "src/assets/dealership/card_ads.webp"
 }]

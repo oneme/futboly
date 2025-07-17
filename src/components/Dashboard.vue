@@ -18,7 +18,7 @@ const startGame = () => {
 </script>
 <template>
   <div class="mx-auto w-1/4 bg-orange-200 rounded-sm p-4 mt-20">
-    <img src="/src/assets/futboly_title.png" alt="title">
+    <img src="/src/assets/futboly_title.webp" alt="title">
     <div class="flex flex-col space-y-2">
       <label for="player-1" class="block w-1/2">
         <span class="text-gray-700">Jugador 1:</span>

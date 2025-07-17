@@ -33,9 +33,9 @@ const isClubService = computed(() => props.box?.kind instanceof ClubService);
       <div class="h-32 bg-auto" :style="`background-image: url('${box.kind.path}');`"
       :class="{'rotate-180': position === Position.TOP}" @mouseover="showDetail = box?.id" @mouseleave="showDetail = null">
         <div class="flex h-full items-end pb-1">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12 "
+          <img src="/src/assets/player-1.webp" alt="player-1" class="size-10"
                v-show="box?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12 "
+          <img src="/src/assets/player-2.webp" alt="player-2" class="size-10"
                v-show="box?.id == gameStore.players[1]?.pos">
         </div>
       </div>

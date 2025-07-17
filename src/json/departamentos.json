@@ -2,60 +2,60 @@
     "name" : "Salida",
     "quantity" : 20000,
     "type": 0,
-    "path" : "src/assets/departments/start.png"
+    "path" : "src/assets/departments/start.webp"
 },{
     "name" : "Federación",
     "quantity" : 0,
     "type": 1,
-    "path" : "src/assets/departments/federation.png"
+    "path" : "src/assets/departments/federation.webp"
 },{
     "name" : "Multa y Cierre del Estadio",
     "quantity" : 20000,
     "type": 0,
-    "path" : "src/assets/departments/close.png"
+    "path" : "src/assets/departments/close.webp"
 },{
     "name" : "Sorpresa",
     "quantity" : 0,
     "type": 2,
-    "path" : "src/assets/departments/surprise.png"
+    "path" : "src/assets/departments/surprise.webp"
 },{
     "name" : "Banquillo",
     "quantity" : 5000,
     "type": 0,
-    "path" : "src/assets/departments/bench.png"
+    "path" : "src/assets/departments/bench.webp"
 },{
     "name" : "Federación",
     "quantity" : 0,
     "type": 1,
-    "path" : "src/assets/departments/federation_left.png"
+    "path" : "src/assets/departments/federation_left.webp"
 },{
     "name" : "Parking",
     "quantity" : 1000,
     "type": 0,
-    "path" : "src/assets/departments/parking.png"
+    "path" : "src/assets/departments/parking.webp"
 },{
     "name" : "Sorpresa",
     "quantity" : 0,
     "type": 2,
-    "path" : "src/assets/departments/surprise.png"
+    "path" : "src/assets/departments/surprise.webp"
 },{
     "name" : "Federación",
     "quantity" : 0,
     "type": 1,
-    "path" : "src/assets/departments/federation.png"
+    "path" : "src/assets/departments/federation.webp"
 },{
     "name" : "Vaya al Banquillo",
     "quantity" : 0,
     "type": 0,
-    "path" : "src/assets/departments/go_to_bench.png"
+    "path" : "src/assets/departments/go_to_bench.webp"
 },{
     "name" : "Sorpresa",
     "quantity" : 0,
     "type": 2,
-    "path" : "src/assets/departments/surprise_right.png"
+    "path" : "src/assets/departments/surprise_right.webp"
 },{
     "name" : "Dia del Club",
     "quantity" : 10000,
     "type": 0,
-    "path" : "src/assets/departments/club_day.png"
+    "path" : "src/assets/departments/club_day.webp"
 }]

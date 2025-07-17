@@ -30,8 +30,8 @@ const counterBox = useBoxStore();
 const gameStore = useGameStore();
 const logStore = useLogStore();
 
-const dice1Path = ref('src/assets/dices/1.png');
-const dice2Path = ref('src/assets/dices/1.png');
+const dice1Path = ref('src/assets/dices/1.webp');
+const dice2Path = ref('src/assets/dices/1.webp');
 const dices = ref(0);
 const modal = useModal();
 onMounted(() => {
@@ -274,9 +274,9 @@ const checkDepartment = (position: number, department: Department, player: Playe
       <div class="h-32 rotate-180 bg-cover bg-center"
            :style="`background-image: url('${counterBox.boxes.top[0].kind.path}');`">
         <div class="flex h-full items-end pb-1">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12 "
+          <img src="/src/assets/player-1.webp" alt="player-1" class="w-12 h-12 "
                v-show="counterBox.boxes.top[0]?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12 "
+          <img src="/src/assets/player-2.webp" alt="player-2" class="w-12 h-12 "
                v-show="counterBox.boxes.top[0]?.id == gameStore.players[1]?.pos">
         </div>
       </div>
@@ -284,9 +284,9 @@ const checkDepartment = (position: number, department: Department, player: Playe
       <div class="h-32 rotate-180 bg-cover bg-center"
            :style="`background-image: url('${counterBox.boxes.top[12].kind.path}');`">
         <div class="flex h-full items-end pb-1">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12 "
+          <img src="/src/assets/player-1.webp" alt="player-1" class="w-12 h-12 "
                v-show="counterBox.boxes.top[12]?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12 "
+          <img src="/src/assets/player-2.webp" alt="player-2" class="w-12 h-12 "
                v-show="counterBox.boxes.top[12]?.id == gameStore.players[1]?.pos">
         </div>
       </div>
@@ -295,13 +295,13 @@ const checkDepartment = (position: number, department: Department, player: Playe
         <div class="col-start-2 col-end-13">
           <div class="flex justify-between" v-if="index === 4">
               <span class="flex">
-                <img src="/src/assets/departments/card_surprise.png" alt="card"
+                <img src="/src/assets/departments/card_surprise.webp" alt="card"
                      class="h-[95px] border-4 border-dotted border-white rotate-90">
                 <span class="text-center text-white font-semibold uppercase rotate-90 -ml-20">sorpresa</span>
               </span>
             <span class="flex">
               <span class="text-center text-white font-semibold uppercase rotate-90 -mr-4">federacion</span>
-              <img src="/src/assets/departments/card_federation.png" alt="card"
+              <img src="/src/assets/departments/card_federation.webp" alt="card"
                    class="h-[95px] rotate-90 border-4 border-dotted border-white">
             </span>
           </div>
@@ -311,9 +311,9 @@ const checkDepartment = (position: number, department: Department, player: Playe
       </template>
       <div class="h-32 bg-cover bg-center" :style="`background-image: url('${counterBox.boxes.bottom[0].kind.path}');`">
         <div class="flex h-full items-end pb-1">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12 "
+          <img src="/src/assets/player-1.webp" alt="player-1" class="w-12 h-12 "
                v-show="counterBox.boxes.bottom[0]?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12 "
+          <img src="/src/assets/player-2.webp" alt="player-2" class="w-12 h-12 "
                v-show="counterBox.boxes.bottom[0]?.id == gameStore.players[1]?.pos">
         </div>
       </div>
@@ -322,9 +322,9 @@ const checkDepartment = (position: number, department: Department, player: Playe
       <div class="h-32 bg-cover bg-center"
            :style="`background-image: url('${counterBox.boxes.bottom[12].kind.path}');`">
         <div class="flex h-full items-end pb-1">
-          <img src="/src/assets/player-1.svg" alt="player-1" class="w-12 h-12"
+          <img src="/src/assets/player-1.webp" alt="player-1" class="w-12 h-12"
                v-show="counterBox.boxes.bottom[12]?.id == gameStore.players[0]?.pos">
-          <img src="/src/assets/player-2.svg" alt="player-2" class="w-12 h-12"
+          <img src="/src/assets/player-2.webp" alt="player-2" class="w-12 h-12"
                v-show="counterBox.boxes.bottom[12]?.id == gameStore.players[1]?.pos">
         </div>
       </div>
