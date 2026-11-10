@@ -8,7 +8,10 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "test": "vitest run --environment jsdom",
+    "test:engine": "tsx scripts/test-engine.ts && tsx scripts/test-management.ts && tsx scripts/test-cards.ts",
+    "validate-data": "tsx scripts/validate-data.ts"
   },
   "dependencies": {
     "@fontsource/roboto": "^5.3.0",
@@ -22,11 +25,15 @@
     "@tsconfig/node22": "^22.0.6",
     "@types/node": "^26.6.6",
     "@vitejs/plugin-vue": "^6.0.10",
+    "@vue/test-utils": "^2.5.1",
     "@vue/tsconfig": "^0.9.1",
+    "jsdom": "^31.0.0",
     "npm-run-all2": "^8.0.4",
+    "tsx": "^4.23.15",
     "typescript": "~7.0.2",
     "vite": "8.3.3",
     "vite-plugin-vue-devtools": "^8.2.1",
+    "vitest": "^5.1.0",
     "vue-tsc": "^3.3.14"
   }
 }
