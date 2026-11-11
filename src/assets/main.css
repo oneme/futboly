@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Colores de equipo de estadios.json: vienen unidos por comas ("bg-green-1000,bg-white"),
+   así que Tailwind no los detecta solo. */
+@source inline("bg-black bg-green-1000 bg-purple-1000 bg-red-1000 bg-red-1100 bg-red-600 bg-sky-1000 bg-sky-1100 bg-sky-1200 bg-sky-800 bg-white text-black text-white");
+
 @theme {
     --color-purple-1000: oklch(0.64 0.07 290.16);
     --color-green-1000: oklch(0.45 0.11 153.78);
