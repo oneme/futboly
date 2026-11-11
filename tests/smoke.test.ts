@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import GameView from '../src/views/GameView.vue'
 import { gridCell } from '../src/lib/boardGeometry'
 import { nextPawnStep } from '../src/lib/pawnPath'
+import BuildingStrip from '../src/components/game/BuildingStrip.vue'
 import { useMatchStore } from '../src/stores/match'
 
 describe('GameView', () => {
@@ -340,5 +341,42 @@ describe('GameView', () => {
       expect(w.text()).toContain('lo controla la IA')
       expect(w.find('fieldset.contents').attributes('disabled')).toBeDefined()
     })
+  })
+
+  it('sillas y tribunas: contenedor a todo el ancho de la casilla y posiciones por lado', () => {
+    const style = (el: Element) => (el as HTMLElement).style
+    const strip = (side: 'bottom' | 'top' | 'left' | 'right', seats: number, stand = false) =>
+      mount(BuildingStrip, { props: { side, seats, stand } })
+
+    // El contenedor mide todo el ancho de la casilla (no 0) y las imágenes no heredan max-width:100%
+    const w = strip('top', 4)
+    expect(w.find('[data-building]').classes()).toContain('inset-x-0')
+    expect(w.find('[data-building]').classes()).not.toContain('w-0')
+    expect(w.findAll('img').every((i) => i.classes().includes('max-w-none'))).toBe(true)
+
+    // Fila superior: se miden desde el borde DERECHO de la casilla, bajo la imagen
+    const top = w.findAll('img').map((i) => style(i.element))
+    expect(top.map((s) => s.right)).toEqual(['0px', '24px', '48px', '72px'])
+    expect(top.every((s) => s.top === '132px')).toBe(true)
+
+    // Fila inferior: desde el borde izquierdo, justo encima de la imagen (que está a 9 px del borde de la casilla)
+    const bottom = strip('bottom', 2).findAll('img').map((i) => style(i.element))
+    expect(bottom.map((s) => s.left)).toEqual(['0px', '24px'])
+    expect(bottom.every((s) => s.top === '-23px')).toBe(true)
+
+    // Columna izquierda: desde el borde derecho de la casilla (200 px), a 32 px
+    const left = strip('left', 3).findAll('img').map((i) => style(i.element))
+    expect(left.every((s) => s.right === '32px')).toBe(true)
+    expect(left.map((s) => s.top)).toEqual(['0px', '24px', '48px'])
+
+    // Columna derecha: desde el borde izquierdo
+    const right = strip('right', 4).findAll('img').map((i) => style(i.element))
+    expect(right.every((s) => s.left === '32px')).toBe(true)
+    expect(right.map((s) => s.top)).toEqual(['-8px', '16px', '40px', '64px'])
+
+    // Tribuna: una sola imagen de 48 px
+    const stand = strip('left', 0, true).findAll('img')
+    expect(stand.length).toBe(1)
+    expect(style(stand[0].element).width).toBe('48px')
   })
 })
