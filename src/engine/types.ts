@@ -79,6 +79,18 @@ export function groupKey(sq: PropertySquare): string {
   return sq.kind === 'stadium' ? `team:${sq.team}` : sq.kind
 }
 
+// ---------- Intercambios ----------
+
+/** `from` entrega `fromPositions` + `fromCash` y recibe `toPositions` + `toCash` de `to`. */
+export interface TradeOffer {
+  from: number
+  to: number
+  fromPositions: number[]
+  toPositions: number[]
+  fromCash: number
+  toCash: number
+}
+
 // ---------- Cartas ----------
 
 export type CardAction =

@@ -66,3 +66,13 @@ npm test                # pruebas de interfaz (vitest + jsdom)
   `src/lib/sound.ts` con Web Audio (sin archivos).
 - **Animación de peones** (`src/lib/pawnPath.ts`): avanzan casilla a casilla; el store espera a que lleguen antes de
   reproducir sonidos o dejar jugar a la IA. Tiempos en `src/stores/match.ts` (`STEP_MS`, `AI_DELAY_MS`).
+
+### Tratos con la IA (`src/engine/trading.ts`)
+
+- **Valoración**: la IA valora un conjunto de concesiones por su precio más un bonus por grupos completos y parejas de
+  servicios; acepta un trato si gana valor (con el dinero incluido) y no regala al rival más de lo que le compensan.
+- **Humano → IA**: en el gestor, pestaña Intercambios, el botón pasa a "Proponer a la IA" y responde al momento.
+- **IA → humano**: la IA compra la concesión que le completa un grupo y deja una propuesta pendiente
+  (`state.proposal`); sale una ventana para aceptar o rechazar. Si se rechaza no vuelve a insistir en 8 turnos.
+- **IA ↔ IA**: negocian subiendo la oferta hasta que la otra acepte; se cierra sin intervención.
+- Los jugadores IA son de solo lectura en el gestor de propiedades.

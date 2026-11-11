@@ -271,5 +271,74 @@ describe('GameView', () => {
       await w.findAll('button').find((b) => b.text() === '🔊' || b.text() === '🔇')!.trigger('click')
       expect(store.muted).toBe(!before)
     })
+
+    it('una IA propone un trato a un humano: aparece la ventana y al aceptar se ejecuta', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      const s = store.state!
+      s.properties[1].owner = 1 // Robot: Betis General
+      s.properties[3].owner = 0 // Humano: Betis Tribuna
+      s.current = 1
+      await vi.advanceTimersByTimeAsync(3_000)
+      expect(s.proposal).toBeTruthy()
+      expect(w.text()).toContain('Robot te propone un trato')
+      expect(w.text()).toContain('Villamarín') // describe lo que se intercambia
+      expect(s.phase).toBe('roll') // el Robot espera, no tira
+
+      const accept = w.findAll('button').find((b) => b.text() === 'Aceptar')!
+      await accept.trigger('click')
+      expect(s.proposal).toBeNull()
+      expect(s.properties[3].owner).toBe(1)
+      await vi.advanceTimersByTimeAsync(3_000)
+      expect(w.text()).not.toContain('te propone un trato')
+      expect(s.log.some((l) => l.startsWith('Trato cerrado'))).toBe(true)
+    })
+
+    it('un humano propone un trato a una IA desde el gestor y ella responde', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      const s = store.state!
+      const gorras = s.board.findIndex((x) => x.kind === 'stadiumService' && x.name === 'Gorras')
+      s.properties[gorras].owner = 1
+      store.openManager(0)
+      await w.vm.$nextTick()
+      await w.findAll('button').find((x) => x.text().includes('Intercambios'))!.trigger('click')
+      const selects = w.findAll('select')
+      await selects[selects.length - 1].setValue(1) // intercambiar con el Robot
+      expect(w.text()).toContain('La IA valorará la oferta')
+      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes('Gorras'))!.setValue(true)
+      const cash = w.findAll('input[type=number]')[0]
+      await cash.setValue(5_000) // oferta tacaña
+      const propose = () => w.findAll('button').find((b) => b.text().includes('Proponer a la IA'))!
+      await propose().trigger('click')
+      expect(w.text()).toContain('rechaza la propuesta')
+      expect(s.properties[gorras].owner).toBe(1)
+
+      await selects[selects.length - 1].setValue(1)
+      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes('Gorras'))!.setValue(true)
+      await w.findAll('input[type=number]')[0].setValue(40_000) // oferta generosa
+      await propose().trigger('click')
+      expect(w.text()).toContain('acepta el trato')
+      expect(s.properties[gorras].owner).toBe(0)
+    })
+
+    it('el gestor de un jugador IA es de solo lectura', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      store.state!.properties[1].owner = 1
+      store.openManager(1)
+      await w.vm.$nextTick()
+      expect(w.text()).toContain('lo controla la IA')
+      expect(w.find('fieldset.contents').attributes('disabled')).toBeDefined()
+    })
   })
 })

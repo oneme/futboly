@@ -1,5 +1,5 @@
 import { buildBoard, loadCards } from './data'
-import type { Card, DepartmentSquare, PropertySquare, Square } from './types'
+import type { Card, DepartmentSquare, PropertySquare, Square, TradeOffer } from './types'
 
 export const START_MONEY = 150_000
 const BOARD_SIZE = 40
@@ -95,6 +95,12 @@ export interface GameState {
   events: GameEventType[]
   eventCount: number
   rules: GameRules
+  /** Propuesta de una IA a un humano pendiente de respuesta (ver trading.ts). */
+  proposal: TradeOffer | null
+  /** Turnos jugados (se incrementa en endTurn); sirve para espaciar las propuestas de la IA. */
+  turnCount: number
+  /** Propuestas de la IA rechazadas: no se repiten hasta que pase el turno indicado. */
+  tradeCooldown: Record<string, number>
 }
 
 export const isProperty = (sq: Square): sq is PropertySquare =>
@@ -148,6 +154,9 @@ export function createGame(
     events: [],
     eventCount: 0,
     rules: { ...DEFAULT_RULES, ...rules },
+    proposal: null,
+    turnCount: 0,
+    tradeCooldown: {},
   }
 }
 
@@ -422,6 +431,7 @@ export function endTurn(s: GameState) {
   do next = (next + 1) % s.players.length
   while (s.players[next].bankrupt)
   s.current = next
+  s.turnCount++
   s.doublesInRow = 0
   s.rolledDouble = false
   s.dice = null

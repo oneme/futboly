@@ -6,6 +6,7 @@ import {
   buildSeat, buildStand, canBuildSeat, canBuildStand, canMortgage, canSellSeat, canSellStands,
   canUnmortgage, mortgage, sellSeat, sellStands, unmortgage, unmortgageCost,
 } from './management'
+import { aiProposeTrade } from './trading'
 import type { PropertySquare, StadiumSquare } from './types'
 
 /**
@@ -13,7 +14,7 @@ import type { PropertySquare, StadiumSquare } from './types'
  * decidir (si es una IA), para que la interfaz pueda espaciarlas y mostrarlas.
  * Estrategia sencilla: compra casi todo, completa grupos, construye con colchón de dinero,
  * puja hasta el valor que le da a la concesión y vende/hipoteca solo lo necesario para pagar.
- * No propone ni acepta intercambios.
+ * Propone y acepta intercambios (ver trading.ts).
  */
 const RESERVE = 15_000 // dinero que prefiere conservar tras comprar
 const BUILD_RESERVE = 30_000 // idem tras construir
@@ -46,7 +47,7 @@ function valuation(s: GameState, p: Player, sq: PropertySquare): number {
 
 /** Hace una acción de la IA. Devuelve false si no le tocaba a una IA (o la partida terminó). */
 export function aiStep(s: GameState, rng: () => number = Math.random): boolean {
-  if (s.phase === 'gameOver') return false
+  if (s.phase === 'gameOver' || s.proposal) return false // con una propuesta pendiente la IA espera al humano
   const p = s.players[actor(s)]
   if (!p) return false
   // Tras una quiebra el turno del jugador eliminado se cierra solo, sea humano o IA.
@@ -71,6 +72,8 @@ function stepRoll(s: GameState, p: Player, rng: () => number): boolean {
     if (p.money >= 5_000 + 60_000) return payJailFine(s), true
     return roll(s, rng), true // intenta sacar doble
   }
+  // Completar un grupo comprándole la concesión que le falta a otro jugador.
+  if (aiProposeTrade(s, p)) return true
   // Construir (las concesiones que más rentan primero), siempre con colchón.
   const stadiums = ownedBy(s, p.id)
     .filter((x): x is StadiumSquare => x.kind === 'stadium')

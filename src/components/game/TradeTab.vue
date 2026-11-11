@@ -31,9 +31,16 @@ function reset() {
   cardBuyer.value = null
   cardPrice.value = 0
 }
-watch(() => props.pid, reset)
-watch(to, () => {
+watch(
+  () => props.pid,
+  () => {
+    reset()
+    result.value = ''
+  },
+)
+watch(to, (value) => {
   theirs.value = []
+  if (value !== null) result.value = '' // al elegir otro jugador se borra el último resultado
 })
 
 const ownedBy = (id: number) =>
@@ -53,10 +60,20 @@ const offer = computed<TradeOffer | null>(() =>
 )
 const error = computed(() => (offer.value ? store.canTrade(offer.value) : 'Elija con quién intercambiar'))
 
+const partnerAI = computed(() => to.value !== null && g.value.players[to.value].ai)
+const result = ref('')
 function submit() {
   if (!offer.value || error.value) return
+  if (partnerAI.value) {
+    const name = g.value.players[offer.value.to].name
+    const accepted = store.proposeToAI(offer.value)
+    reset()
+    result.value = accepted ? `${name} (IA) acepta el trato.` : `${name} (IA) rechaza la propuesta.`
+    return
+  }
   store.trade(offer.value)
   reset()
+  result.value = ''
 }
 
 // ----- Venta de la carta "Salga del Banquillo" -----
@@ -111,8 +128,12 @@ function sellCard() {
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <button :class="btnPrimary" :disabled="!!error" @click="submit">Aceptar intercambio</button>
+        <button :class="btnPrimary" :disabled="!!error" @click="submit">
+          {{ partnerAI ? 'Proponer a la IA' : 'Aceptar intercambio' }}
+        </button>
+        <span v-if="partnerAI" class="text-xs text-violet-700">La IA valorará la oferta y responderá al momento.</span>
         <span v-if="error && to !== null" class="text-xs text-amber-700">{{ error }}</span>
+        <span v-if="result" class="text-sm font-medium text-slate-700">{{ result }}</span>
       </div>
     </section>
 

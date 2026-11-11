@@ -6,6 +6,7 @@ import ActionPanel from '../components/game/ActionPanel.vue'
 import PlayersPanel from '../components/game/PlayersPanel.vue'
 import ManagerDialog from '../components/game/ManagerDialog.vue'
 import PawnIcon from '../components/game/PawnIcon.vue'
+import TradeProposalDialog from '../components/game/TradeProposalDialog.vue'
 import { logoUrl, titleUrl } from '../lib/assets'
 
 const store = useMatchStore()
@@ -120,5 +121,6 @@ watch(
     </aside>
 
     <ManagerDialog />
+    <TradeProposalDialog />
   </div>
 </template>

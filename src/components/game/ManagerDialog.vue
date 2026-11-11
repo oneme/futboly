@@ -45,8 +45,13 @@ const tabClass = (t: string) =>
       </nav>
 
       <div class="overflow-y-auto p-3">
-        <PropertiesTab v-if="tab === 'props'" :pid="pid" />
-        <TradeTab v-else :pid="pid" />
+        <p v-if="player.ai" class="mb-2 rounded bg-violet-50 px-2 py-1 text-sm text-violet-800">
+          Este jugador lo controla la IA: solo puedes consultar sus propiedades.
+        </p>
+        <fieldset class="contents" :disabled="player.ai">
+          <PropertiesTab v-if="tab === 'props'" :pid="pid" />
+          <TradeTab v-else :pid="pid" />
+        </fieldset>
       </div>
     </div>
   </div>

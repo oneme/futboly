@@ -60,7 +60,7 @@ const canCustom = computed(
 
 // Quién decide ahora (puede no ser el jugador en turno: subasta o deuda) y bloqueo de botones
 const actor = computed(() => store.actingPlayer ?? p.value)
-const locked = computed(() => store.moving || store.aiActing)
+const locked = computed(() => store.moving || store.aiActing || !!s.value.proposal)
 
 // Deuda
 const debtor = computed(() => (s.value.debt ? s.value.players[s.value.debt.debtor] : null))
@@ -77,6 +77,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <span class="font-normal text-slate-600">· {{ fmt(actor.money) }}</span>
     </div>
     <p v-if="store.aiActing && !store.moving" class="text-sm italic text-slate-500">pensando…</p>
+    <p v-else-if="s.proposal" class="text-sm italic text-slate-500">esperando tu respuesta a la propuesta…</p>
     <div v-if="shownDice" class="flex items-center justify-center gap-3">
       <DiceView :value="shownDice[0]" :px="56" :rolling="rolling" />
       <DiceView :value="shownDice[1]" :px="56" :rolling="rolling" />

@@ -1,5 +1,5 @@
 import { emit, isProperty, type GameState } from './game'
-import type { PropertySquare, StadiumSquare } from './types'
+import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
 
 /**
  * Gestión de propiedades: asientos, tribunas, hipotecas e intercambios.
@@ -206,14 +206,7 @@ export const unmortgage = action(canUnmortgage, (s, pid, pos) => {
 
 // ---------- Intercambios entre jugadores ----------
 
-export interface TradeOffer {
-  from: number
-  to: number
-  fromPositions: number[]
-  toPositions: number[]
-  fromCash: number
-  toCash: number
-}
+export type { TradeOffer }
 
 export const canTrade = (s: GameState, t: TradeOffer): Check => {
   // También se puede intercambiar con una deuda pendiente: es una forma de conseguir dinero.

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import * as engine from '../engine/game'
 import * as mgmt from '../engine/management'
 import { actor, aiStep } from '../engine/ai'
+import * as trading from '../engine/trading'
 import type { GameEventType, GameRules, GameState, PlayerSpec } from '../engine/game'
 import { DEFAULT_RULES } from '../engine/game'
 import type { TradeOffer } from '../engine/management'
@@ -41,6 +42,7 @@ export const useMatchStore = defineStore('match', () => {
     const s = state.value
     if (!s || s.phase === 'gameOver') return false
     const p = s.players[actor(s)]
+    if (s.proposal) return false // la IA espera la respuesta del humano
     return !!p && (p.ai || (s.phase === 'endTurn' && p.bankrupt))
   })
 
@@ -148,7 +150,7 @@ export const useMatchStore = defineStore('match', () => {
   watch(
     () => {
       const s = state.value
-      return s && [s.phase, s.current, s.auction?.turn, s.auction?.bid, s.debt?.debtor, s.eventCount, s.log.length].join('|')
+      return s && [s.phase, s.current, s.auction?.turn, s.auction?.bid, s.debt?.debtor, !!s.proposal, s.eventCount, s.log.length].join('|')
     },
     scheduleAI,
   )
@@ -169,6 +171,9 @@ export const useMatchStore = defineStore('match', () => {
     // Partidas guardadas con versiones anteriores del motor.
     s.events ??= []
     s.rules = { ...DEFAULT_RULES, ...s.rules }
+    s.proposal ??= null
+    s.turnCount ??= 0
+    s.tradeCooldown ??= {}
     s.eventCount ??= 0
     for (const p of s.players) p.ai ??= false
     if (s.auction && !('bid' in s.auction)) s.auction = null
@@ -240,6 +245,10 @@ export const useMatchStore = defineStore('match', () => {
     mortgage: (pid: number, pos: number) => mgmt.mortgage(g(), pid, pos),
     unmortgage: (pid: number, pos: number) => mgmt.unmortgage(g(), pid, pos),
     trade: (offer: TradeOffer) => mgmt.trade(g(), offer),
+    /** Un humano ofrece un trato a una IA: devuelve true si lo acepta. */
+    proposeToAI: (offer: TradeOffer) => trading.proposeTrade(g(), offer),
+    /** El humano responde a la propuesta de una IA. */
+    answerProposal: (accept: boolean) => trading.answerProposal(g(), accept),
     sellJailCard: (from: number, to: number, index: number, price: number) =>
       mgmt.sellJailCard(g(), from, to, index, price),
   }
