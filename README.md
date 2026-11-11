@@ -55,3 +55,14 @@ npm run validate-data   # comprueba los JSON (hipotecas, rentas, cartas de movim
 npm run test:engine     # reglas del motor y simulaciones de partidas completas con bots
 npm test                # pruebas de interfaz (vitest + jsdom)
 ```
+
+### IA, subastas, animación y sonido
+
+- **Jugadores IA** (`src/engine/ai.ts`): `aiStep(state)` hace una acción del jugador al que le toca (turno, subasta o deuda).
+  Compra y puja según el valor que da a cada concesión (más si completa un grupo), construye con colchón de dinero y
+  vende/hipoteca solo lo necesario para pagar. No propone ni acepta intercambios.
+- **Subasta por pujas**: `declineBuy` abre la subasta; `auctionBid` / `auctionPass` se turnan los jugadores hasta que queda uno.
+- **Eventos** (`state.events`, `emit()` en el motor): sirven para los sonidos; los sonidos se sintetizan en
+  `src/lib/sound.ts` con Web Audio (sin archivos).
+- **Animación de peones** (`src/lib/pawnPath.ts`): avanzan casilla a casilla; el store espera a que lleguen antes de
+  reproducir sonidos o dejar jugar a la IA. Tiempos en `src/stores/match.ts` (`STEP_MS`, `AI_DELAY_MS`).

@@ -48,7 +48,9 @@ const hoveredOwner = computed(() => {
   const owner = hoveredSq.value ? g.value.properties[hoveredSq.value.position].owner : null
   return owner === null ? undefined : g.value.players[owner].name
 })
-const playersAt = (position: number) => g.value.players.filter((p) => !p.bankrupt && p.position === position)
+// Los peones se dibujan en la casilla que muestra la animación, no en la real.
+const playersAt = (position: number) =>
+  g.value.players.filter((p) => !p.bankrupt && (store.shown[p.id] ?? p.position) === position)
 
 // Zona central (columnas 2..12, filas 2..8) en px reales, para superponer los controles sin escalar su texto.
 const centerStyle = computed(() => {

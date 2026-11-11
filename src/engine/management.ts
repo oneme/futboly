@@ -1,4 +1,4 @@
-import { isProperty, type GameState } from './game'
+import { emit, isProperty, type GameState } from './game'
 import type { PropertySquare, StadiumSquare } from './types'
 
 /**
@@ -66,6 +66,7 @@ export const buildSeat = action(canBuildSeat, (s, pid, pos) => {
   s.properties[pos].seats++
   s.bankSeats--
   s.log.push(`${s.players[pid].name} construye un asiento en ${sq.name} (${sq.part}) por ${money(sq.buildCost)}.`)
+  emit(s, 'build')
 })
 
 // ---------- Tribunas ----------
@@ -96,6 +97,7 @@ export const buildStand = action(canBuildStand, (s, pid, pos) => {
   s.bankSeats += 4
   s.bankStands--
   s.log.push(`${s.players[pid].name} construye una tribuna en ${sq.name} (${sq.part}) por ${money(sq.buildCost)}.`)
+  emit(s, 'build')
 })
 
 // ---------- Venta de mejoras a la Banca (a mitad de precio) ----------
@@ -120,6 +122,7 @@ export const sellSeat = action(canSellSeat, (s, pid, pos) => {
   s.properties[pos].seats--
   s.bankSeats++
   s.log.push(`${s.players[pid].name} vende un asiento de ${sq.name} (${sq.part}) por ${money(sq.buildCost / 2)}.`)
+  emit(s, 'sell')
 })
 
 export const canSellStands = (s: GameState, pid: number, pos: number): Check => {
@@ -153,6 +156,7 @@ export const sellStands = action(canSellStands, (s, pid, pos) => {
   }
   s.players[pid].money += total
   s.log.push(`${s.players[pid].name} vende las mejoras de ${sq.name} por ${money(total)}.`)
+  emit(s, 'sell')
 })
 
 // ---------- Hipotecas ----------
@@ -176,6 +180,7 @@ export const mortgage = action(canMortgage, (s, pid, pos) => {
   s.players[pid].money += sq.mortgage
   s.properties[pos].mortgaged = true
   s.log.push(`${s.players[pid].name} hipoteca ${sq.name} y recibe ${money(sq.mortgage)}.`)
+  emit(s, 'mortgage')
 })
 
 export const canUnmortgage = (s: GameState, pid: number, pos: number): Check => {
@@ -196,6 +201,7 @@ export const unmortgage = action(canUnmortgage, (s, pid, pos) => {
   s.players[pid].money -= unmortgageCost(sq)
   s.properties[pos].mortgaged = false
   s.log.push(`${s.players[pid].name} levanta la hipoteca de ${sq.name} por ${money(unmortgageCost(sq))}.`)
+  emit(s, 'mortgage')
 })
 
 // ---------- Intercambios entre jugadores ----------
@@ -241,6 +247,7 @@ export const trade = action(canTrade, (s, t) => {
   s.players[t.from].money += t.toCash - t.fromCash
   s.players[t.to].money += t.fromCash - t.toCash
   s.log.push(`${s.players[t.from].name} y ${s.players[t.to].name} intercambian concesiones.`)
+  emit(s, 'trade')
 })
 
 // ---------- Venta de la carta "Salga del Banquillo" ----------
@@ -262,4 +269,5 @@ export const sellJailCard = action(canSellJailCard, (s, from, to, index, price) 
   s.players[from].money += price
   s.players[to].money -= price
   s.log.push(`${s.players[from].name} vende la carta "Salga del Banquillo" a ${s.players[to].name} por ${money(price)}.`)
+  emit(s, 'trade')
 })

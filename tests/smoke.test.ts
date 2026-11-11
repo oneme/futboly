@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import GameView from '../src/views/GameView.vue'
 import { gridCell } from '../src/lib/boardGeometry'
+import { nextPawnStep } from '../src/lib/pawnPath'
 import { useMatchStore } from '../src/stores/match'
 
 describe('GameView', () => {
@@ -22,11 +23,12 @@ describe('GameView', () => {
 
   it('arranca, muestra 40 casillas y juega varios turnos sin errores', async () => {
     const w = mount(GameView, { global: { plugins: [createPinia()] } })
+    for (const box of w.findAll('input[type=checkbox]')) await box.setValue(false) // los dos jugadores, humanos
     const start = w.findAll('button').find((b) => b.text().includes('Empezar'))!
     await start.trigger('click')
     expect(w.findAll('[title]').length).toBeGreaterThanOrEqual(40)
 
-    const labels = ['Tirar dados', 'Aplicar', 'Pagar la multa', 'Comprar', 'Nadie puja', 'Saldar deuda', 'Terminar turno']
+    const labels = ['Tirar dados', 'Aplicar', 'Pagar la multa', 'Comprar', 'Retirarse', 'Saldar deuda', 'Terminar turno']
     for (let i = 0; i < 60; i++) {
       const btn = w.findAll('button').find((b) => labels.some((l) => b.text().startsWith(l)) && !b.attributes('disabled'))
         ?? w.findAll('button').find((b) => b.text().includes('Subastar') || b.text().includes('quiebra'))
@@ -164,5 +166,106 @@ describe('GameView', () => {
     await camp.trigger('mouseleave')
     await imgBox('Parking').trigger('mouseenter')
     expect(w.text()).not.toContain('título de propiedad')
+  })
+
+  it('animación de peones: avanza de uno en uno, retrocede 3 o salta', () => {
+    expect(nextPawnStep(10, 14)).toBe(11)
+    expect(nextPawnStep(38, 3)).toBe(39) // da la vuelta al tablero
+    expect(nextPawnStep(10, 7)).toBe(9) // "retroceda tres casillas"
+    expect(nextPawnStep(33, 12)).toBe(12) // Banquillo: salto directo
+    expect(nextPawnStep(5, 5)).toBe(5)
+    const walk: number[] = [36]
+    while (walk.at(-1) !== 4) walk.push(nextPawnStep(walk.at(-1)!, 4))
+    expect(walk).toEqual([36, 37, 38, 39, 0, 1, 2, 3, 4])
+  })
+
+  it('subasta por pujas desde la interfaz', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    const store = useMatchStore()
+    store.start(['Ana', 'Beto', 'Carla'])
+    const s = store.state!
+    s.players[0].position = 3 // Betis Tribuna, libre
+    s.phase = 'buy'
+    await w.vm.$nextTick()
+    const click = async (text: string) => {
+      const b = w.findAll('button').find((x) => x.text().includes(text) && !x.attributes('disabled'))
+      expect(b, `botón "${text}"`).toBeTruthy()
+      await b!.trigger('click')
+    }
+    await click('Subastar')
+    expect(s.phase).toBe('auction')
+    expect(w.text()).toContain('Subasta de')
+    expect(s.auction!.turn).toBe(1) // empieza Beto
+    await click('+1.000')
+    expect(s.auction!.bid).toBe(1000)
+    expect(s.auction!.leader).toBe(1)
+    await click('+500') // Carla sube a 1.500
+    expect(s.auction!.bid).toBe(1500)
+    await click('Retirarse') // Ana
+    await click('Retirarse') // Beto
+    expect(s.auction).toBeNull()
+    expect(s.properties[3].owner).toBe(2) // gana Carla
+    expect(s.players[2].money).toBe(148_500)
+  })
+
+  describe('jugadores IA, animación y sonido', () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    it('una IA juega sola su turno y los botones se bloquean mientras decide', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      store.roll()
+      await w.vm.$nextTick()
+      // El humano termina su turno (resolviendo lo que le toque) y pasa a la IA
+      for (let i = 0; i < 12 && store.state!.current === 0; i++) {
+        const ph = store.state!.phase
+        if (ph === 'buy') store.declineBuy()
+        else if (ph === 'auction') store.auctionPass()
+        else if (ph === 'card') store.resolveCard()
+        else if (ph === 'cardChoice') store.chooseRisk(false)
+        else if (ph === 'debt') store.declareBankruptcy()
+        else if (ph === 'roll') store.roll()
+        else if (ph === 'endTurn') store.endTurn()
+        else break
+      }
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(store.state!.log.some((l) => l.startsWith('Robot saca'))).toBe(true)
+    })
+
+    it('partida solo de IAs a través del store: progresa sin errores y los peones llegan a su casilla', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([
+        { name: 'A', ai: true },
+        { name: 'B', ai: true },
+        { name: 'C', ai: true },
+      ])
+      await vi.advanceTimersByTimeAsync(120_000)
+      const s = store.state!
+      expect(s.log.length).toBeGreaterThan(100)
+      for (const p of s.players) expect(store.shown[p.id]).toBe(p.position)
+      expect(store.moving).toBe(false)
+      expect(w.findAll('[title]').length).toBeGreaterThanOrEqual(40)
+    })
+
+    it('el botón de sonido alterna el silencio', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start(['Ana', 'Beto'])
+      await w.vm.$nextTick()
+      const before = store.muted
+      await w.findAll('button').find((b) => b.text() === '🔊' || b.text() === '🔇')!.trigger('click')
+      expect(store.muted).toBe(!before)
+    })
   })
 })

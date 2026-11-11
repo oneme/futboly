@@ -2,49 +2,188 @@ import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import * as engine from '../engine/game'
 import * as mgmt from '../engine/management'
-import type { GameState } from '../engine/game'
+import { actor, aiStep } from '../engine/ai'
+import type { GameEventType, GameState, PlayerSpec } from '../engine/game'
 import type { TradeOffer } from '../engine/management'
+import { nextPawnStep } from '../lib/pawnPath'
+import { isMuted, playSound, setMuted, type SoundName } from '../lib/sound'
 
 const SAVE_KEY = 'futboly-save'
+const TEST = import.meta.env.MODE === 'test'
+/** Milisegundos por casilla en la animación de los peones y entre acciones de una IA. */
+const STEP_MS = TEST ? 0 : 170
+const AI_DELAY_MS = TEST ? 0 : 800
+
+/** Qué sonido corresponde a cada suceso del motor. */
+const SOUND_FOR: Record<GameEventType, SoundName> = {
+  dice: 'dice', buy: 'buy', rent: 'rent', pay: 'pay', receive: 'receive', card: 'card', jail: 'jail',
+  build: 'build', sell: 'sell', mortgage: 'mortgage', trade: 'trade', bankrupt: 'bankrupt', win: 'win',
+}
 
 /** Envuelve el motor puro en un store reactivo. El motor muta el estado; Vue detecta los cambios. */
 export const useMatchStore = defineStore('match', () => {
   const state = ref<GameState | null>(null)
-
-  const current = computed(() => (state.value ? state.value.players[state.value.current] : null))
   const hasSavedGame = ref(!!localStorage.getItem(SAVE_KEY))
   /** Jugador cuyo gestor de propiedades está abierto (null = cerrado). Solo estado de interfaz. */
   const managing = ref<number | null>(null)
+  const muted = ref(isMuted())
+
+  /** Casilla que se está mostrando de cada peón (va por detrás de la real mientras se anima). */
+  const shown = ref<Record<number, number>>({})
+  const moving = ref(false)
+
+  const current = computed(() => (state.value ? state.value.players[state.value.current] : null))
+  /** Jugador al que le toca decidir ahora (el del turno, el de la subasta o el deudor). */
+  const actingPlayer = computed(() => (state.value ? state.value.players[actor(state.value)] : null))
+  /** True si decide una IA (o si hay que cerrar el turno de un jugador eliminado). */
+  const aiActing = computed(() => {
+    const s = state.value
+    if (!s || s.phase === 'gameOver') return false
+    const p = s.players[actor(s)]
+    return !!p && (p.ai || (s.phase === 'endTurn' && p.bankrupt))
+  })
 
   const g = (): GameState => {
     if (!state.value) throw new Error('No hay partida en curso')
     return state.value
   }
 
-  // Guardado automático en el navegador.
+  // ---------- Guardado automático ----------
+  // Cada acción del motor deja una línea en el registro, así que basta vigilar eso (no todo el estado)
+  // y guardar como mucho cada 400 ms.
+  let saveTimer: ReturnType<typeof setTimeout> | undefined
+  const save = () => {
+    saveTimer = undefined
+    try {
+      state.value ? localStorage.setItem(SAVE_KEY, JSON.stringify(state.value)) : localStorage.removeItem(SAVE_KEY)
+      hasSavedGame.value = !!state.value
+    } catch {
+      /* sin espacio o modo privado: se ignora */
+    }
+  }
   watch(
-    state,
-    (v) => {
-      try {
-        v ? localStorage.setItem(SAVE_KEY, JSON.stringify(v)) : localStorage.removeItem(SAVE_KEY)
-        hasSavedGame.value = !!v
-      } catch {
-        /* sin espacio o modo privado: se ignora */
-      }
+    () => (state.value ? [state.value.log.length, state.value.phase, state.value.current].join('|') : null),
+    () => {
+      if (!state.value) save()
+      else if (!saveTimer) saveTimer = setTimeout(save, 400)
     },
-    { deep: true },
   )
 
-  function start(names: string[]) {
-    state.value = engine.createGame(names)
+  // ---------- Animación de los peones ----------
+  let moveTimer: ReturnType<typeof setTimeout> | undefined
+  let pendingSounds: SoundName[] = []
+
+  function stepPawns() {
+    moveTimer = undefined
+    const s = state.value
+    if (!s) return
+    let any = false
+    for (const p of s.players) {
+      const cur = shown.value[p.id] ?? p.position
+      if (cur === p.position) continue
+      const next = STEP_MS === 0 ? p.position : nextPawnStep(cur, p.position)
+      shown.value[p.id] = next
+      if (next !== p.position) playSound('step')
+      any = any || next !== p.position
+    }
+    if (any) {
+      moveTimer = setTimeout(stepPawns, STEP_MS)
+    } else {
+      moving.value = false
+      const sounds = pendingSounds
+      pendingSounds = []
+      sounds.forEach((name, i) => setTimeout(() => playSound(name), i * 260))
+      scheduleAI()
+    }
+  }
+  function startMoving() {
+    const s = state.value
+    if (!s || moveTimer) return
+    if (s.players.some((p) => (shown.value[p.id] ?? p.position) !== p.position)) {
+      moving.value = true
+      stepPawns()
+    }
+  }
+  const syncShown = () => {
+    shown.value = Object.fromEntries(g().players.map((p) => [p.id, p.position]))
+    moving.value = false
+  }
+  watch(() => state.value?.players.map((p) => p.position).join(','), startMoving)
+
+  // ---------- Sonidos ----------
+  let soundCursor = 0
+  watch(
+    () => state.value?.eventCount,
+    (count) => {
+      const s = state.value
+      if (!s || count === undefined) return
+      const fresh = s.events.slice(-Math.min(s.events.length, count - soundCursor))
+      soundCursor = count
+      for (const ev of fresh) {
+        const name = SOUND_FOR[ev]
+        // Los dados suenan al instante; el resto espera a que el peón llegue a su casilla.
+        if (ev === 'dice' || !moving.value) playSound(name)
+        else pendingSounds.push(name)
+      }
+    },
+  )
+  function toggleMute() {
+    muted.value = !muted.value
+    setMuted(muted.value)
+  }
+
+  // ---------- Jugadores controlados por la máquina ----------
+  let aiTimer: ReturnType<typeof setTimeout> | undefined
+  function scheduleAI() {
+    if (aiTimer || moving.value || !aiActing.value) return
+    aiTimer = setTimeout(() => {
+      aiTimer = undefined
+      if (!state.value || moving.value) return
+      aiStep(state.value)
+      scheduleAI()
+    }, AI_DELAY_MS)
+  }
+  // Cualquier cambio de fase, turno o subasta puede dejar a una IA con algo que hacer.
+  watch(
+    () => {
+      const s = state.value
+      return s && [s.phase, s.current, s.auction?.turn, s.auction?.bid, s.debt?.debtor, s.eventCount, s.log.length].join('|')
+    },
+    scheduleAI,
+  )
+
+  // ---------- Ciclo de la partida ----------
+  function start(players: (string | PlayerSpec)[]) {
+    state.value = engine.createGame(players)
+    save()
+    soundCursor = 0
+    pendingSounds = []
+    syncShown()
+    scheduleAI()
   }
   function continueSaved() {
     const raw = localStorage.getItem(SAVE_KEY)
-    if (raw) state.value = JSON.parse(raw) as GameState
+    if (!raw) return
+    const s = JSON.parse(raw) as GameState
+    // Partidas guardadas con versiones anteriores del motor.
+    s.events ??= []
+    s.eventCount ??= 0
+    for (const p of s.players) p.ai ??= false
+    if (s.auction && !('bid' in s.auction)) s.auction = null
+    state.value = s
+    soundCursor = s.eventCount
+    pendingSounds = []
+    syncShown()
+    scheduleAI()
   }
   function quit() {
     state.value = null
+    save()
     managing.value = null
+    moving.value = false
+    clearTimeout(aiTimer)
+    clearTimeout(moveTimer)
+    aiTimer = moveTimer = undefined
   }
   const openManager = (id: number) => (managing.value = id)
   const closeManager = () => (managing.value = null)
@@ -52,7 +191,13 @@ export const useMatchStore = defineStore('match', () => {
   return {
     state,
     current,
+    actingPlayer,
+    aiActing,
     hasSavedGame,
+    shown,
+    moving,
+    muted,
+    toggleMute,
     start,
     continueSaved,
     quit,
@@ -61,6 +206,8 @@ export const useMatchStore = defineStore('match', () => {
     endTurn: () => engine.endTurn(g()),
     buy: () => engine.buy(g()),
     declineBuy: () => engine.declineBuy(g()),
+    auctionBid: (amount: number) => engine.auctionBid(g(), amount),
+    auctionPass: () => engine.auctionPass(g()),
     resolveAuction: (winner: number | null, price: number) => engine.resolveAuction(g(), winner, price),
     // Cartas y Banquillo
     resolveCard: () => engine.resolveCard(g()),

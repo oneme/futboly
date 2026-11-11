@@ -5,16 +5,20 @@ import BoardView from '../components/game/BoardView.vue'
 import ActionPanel from '../components/game/ActionPanel.vue'
 import PlayersPanel from '../components/game/PlayersPanel.vue'
 import ManagerDialog from '../components/game/ManagerDialog.vue'
+import PawnIcon from '../components/game/PawnIcon.vue'
 import { logoUrl, titleUrl } from '../lib/assets'
 
 const store = useMatchStore()
-const names = ref(['Jugador 1', 'Jugador 2'])
-const canAdd = computed(() => names.value.length < 6)
-const canStart = computed(() => names.value.length >= 2 && names.value.every((n) => n.trim()))
+const players = ref([
+  { name: 'Jugador 1', ai: false },
+  { name: 'Jugador 2', ai: true },
+])
+const canAdd = computed(() => players.value.length < 6)
+const canStart = computed(() => players.value.length >= 2 && players.value.every((p) => p.name.trim()))
 
-const addPlayer = () => names.value.push(`Jugador ${names.value.length + 1}`)
-const removePlayer = (i: number) => names.value.splice(i, 1)
-const start = () => store.start(names.value.map((n) => n.trim()))
+const addPlayer = () => players.value.push({ name: `Jugador ${players.value.length + 1}`, ai: true })
+const removePlayer = (i: number) => players.value.splice(i, 1)
+const start = () => store.start(players.value.map((p) => ({ name: p.name.trim(), ai: p.ai })))
 
 // Registro de eventos con scroll automático al final.
 const logBox = ref<HTMLElement | null>(null)
@@ -33,12 +37,16 @@ watch(
   <div v-if="!store.state" class="mx-auto flex max-w-md flex-col gap-4 p-6">
     <img v-if="titleUrl()" :src="titleUrl()" alt="Futboly" class="mx-auto w-full max-w-xs" />
     <h1 v-else class="text-3xl font-extrabold tracking-tight">FUTBOLY</h1>
-    <p class="text-center text-slate-600">De 2 a 6 jugadores en el mismo dispositivo.</p>
+    <p class="text-center text-slate-600">De 2 a 6 jugadores en el mismo dispositivo; marca "IA" para los que juegue la máquina.</p>
 
-    <div v-for="(_, i) in names" :key="i" class="flex gap-2">
-      <input v-model="names[i]" class="flex-1 rounded-md border border-slate-300 px-3 py-1.5" maxlength="20" />
+    <div v-for="(player, i) in players" :key="i" class="flex items-center gap-2">
+      <PawnIcon :id="i" :px="32" />
+      <input v-model="player.name" class="flex-1 rounded-md border border-slate-300 px-3 py-1.5" maxlength="20" />
+      <label class="flex items-center gap-1 text-sm text-slate-600" title="Jugador controlado por la máquina">
+        <input v-model="player.ai" type="checkbox" /> IA
+      </label>
       <button
-        v-if="names.length > 2"
+        v-if="players.length > 2"
         class="rounded-md border border-slate-300 px-3 hover:bg-slate-50"
         @click="removePlayer(i)"
       >
@@ -86,7 +94,16 @@ watch(
       >
         <p v-for="(line, i) in log" :key="i" class="py-0.5">{{ line }}</p>
       </div>
-      <button class="self-start text-xs text-slate-500 underline" @click="store.quit()">Abandonar partida</button>
+      <div class="flex items-center gap-4">
+        <button class="text-xs text-slate-500 underline" @click="store.quit()">Abandonar partida</button>
+        <button
+          class="rounded border border-slate-300 px-2 py-0.5 text-sm hover:bg-slate-50"
+          :title="store.muted ? 'Activar sonido' : 'Silenciar'"
+          @click="store.toggleMute()"
+        >
+          {{ store.muted ? '🔇' : '🔊' }}
+        </button>
+      </div>
     </aside>
 
     <ManagerDialog />

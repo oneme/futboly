@@ -20,9 +20,29 @@ export type Creditor = number | 'bank' | 'parking'
 /** Qué ocurre cuando una deuda se salda: seguir la casilla, mover desde el Banquillo o volver a tirar. */
 export type DebtResume = 'afterLanding' | 'jailMove' | 'roll'
 
+export type GameEventType =
+  | 'dice' | 'buy' | 'rent' | 'pay' | 'receive' | 'card' | 'jail'
+  | 'build' | 'sell' | 'mortgage' | 'trade' | 'bankrupt' | 'win'
+
+/** Subasta por pujas: se turnan los jugadores que siguen en ella hasta que queda uno. */
+export interface Auction {
+  position: number
+  bid: number // puja más alta (0 = nadie ha pujado)
+  leader: number | null // quien la ha hecho
+  passed: number[] // jugadores que se han retirado
+  turn: number // a quién le toca decidir
+}
+
+export interface PlayerSpec {
+  name: string
+  /** Jugador controlado por la máquina (ver ai.ts). */
+  ai?: boolean
+}
+
 export interface Player {
   id: number
   name: string
+  ai: boolean
   money: number
   position: number
   inJail: boolean
@@ -57,10 +77,13 @@ export interface GameState {
   decks: { federation: Card[]; surprise: Card[] }
   /** Carta robada pendiente de aplicar. */
   card: { deck: 'federation' | 'surprise'; card: Card } | null
-  auction: { position: number } | null
+  auction: Auction | null
   debt: { debtor: number; amount: number; creditor: Creditor; resume: DebtResume } | null
   winner: number | null
   log: string[]
+  /** Sucesos recientes para sonidos y animaciones; eventCount cuenta todos los emitidos. */
+  events: GameEventType[]
+  eventCount: number
 }
 
 export const isProperty = (sq: Square): sq is PropertySquare =>
@@ -76,11 +99,11 @@ function shuffle<T>(arr: T[], rng: () => number) {
 }
 
 export function createGame(
-  names: string[],
+  specs: (string | PlayerSpec)[],
   board: Square[] = buildBoard(),
   rng: () => number = Math.random,
 ): GameState {
-  if (names.length < 2 || names.length > 6) throw new Error('De 2 a 6 jugadores')
+  if (specs.length < 2 || specs.length > 6) throw new Error('De 2 a 6 jugadores')
   const properties: Record<number, PropertyState> = {}
   for (const sq of board)
     if (isProperty(sq)) properties[sq.position] = { owner: null, seats: 0, stand: false, mortgaged: false }
@@ -89,8 +112,11 @@ export function createGame(
   shuffle(decks.surprise, rng)
   return {
     board,
-    players: names.map((name, id) => ({
-      id, name, money: START_MONEY, position: 0, inJail: false, jailTurns: 0, bankrupt: false, jailCards: [],
+    players: specs.map((spec, id) => ({
+      id,
+      name: typeof spec === 'string' ? spec : spec.name,
+      ai: typeof spec === 'string' ? false : !!spec.ai,
+      money: START_MONEY, position: 0, inJail: false, jailTurns: 0, bankrupt: false, jailCards: [],
     })),
     properties,
     current: 0,
@@ -107,6 +133,8 @@ export function createGame(
     debt: null,
     winner: null,
     log: [],
+    events: [],
+    eventCount: 0,
   }
 }
 
@@ -114,6 +142,13 @@ export function createGame(
 
 export const currentPlayer = (s: GameState) => s.players[s.current]
 const log = (s: GameState, msg: string) => s.log.push(msg)
+
+/** Anota un suceso para la interfaz (sonidos). Se guardan los últimos 60. */
+export function emit(s: GameState, type: GameEventType) {
+  s.events.push(type)
+  if (s.events.length > 60) s.events.shift()
+  s.eventCount++
+}
 const die = (rng: () => number) => Math.floor(rng() * 6) + 1
 const money = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
@@ -183,6 +218,7 @@ function goToJail(s: GameState) {
   p.jailTurns = 0
   s.rolledDouble = false
   log(s, `${p.name} va directamente al Banquillo.`)
+  emit(s, 'jail')
 }
 
 /** Coloca al jugador actual; cobra Salida si ha pasado por ella o cae en ella. */
@@ -192,6 +228,7 @@ function placeAt(s: GameState, position: number, passedStart: boolean) {
   if (passedStart) {
     p.money += startSalary(s)
     log(s, `${p.name} pasa por la Salida y cobra ${money(startSalary(s))}.`)
+    emit(s, 'receive')
   }
 }
 
@@ -212,6 +249,7 @@ export function roll(s: GameState, rng: () => number = Math.random) {
   const isDouble = d1 === d2
   s.dice = [d1, d2]
   log(s, `${p.name} saca ${d1} y ${d2}.`)
+  emit(s, 'dice')
 
   if (p.inJail) return rollInJail(s, isDouble)
 
@@ -279,16 +317,76 @@ export function buy(s: GameState) {
   p.money -= sq.price
   s.properties[p.position].owner = p.id
   log(s, `${p.name} compra ${sq.name} por ${money(sq.price)}.`)
+  emit(s, 'buy')
   afterLanding(s)
 }
 
+/** Rechaza la compra: sale a subasta entre todos los jugadores, incluido quien la rechaza. */
 export function declineBuy(s: GameState) {
   assertPhase(s, 'buy')
-  s.auction = { position: currentPlayer(s).position }
+  s.auction = { position: currentPlayer(s).position, bid: 0, leader: null, passed: [], turn: s.current }
   s.phase = 'auction'
+  log(s, `${s.board[s.auction.position].name} sale a subasta.`)
+  auctionAdvance(s)
 }
 
-/** La UI/IA decide quién gana la subasta y a qué precio; null = nadie puja. */
+/** Siguiente jugador que puede pujar (no retirado, no en quiebra y que no sea el que va ganando). */
+function nextBidder(s: GameState, a: Auction): number {
+  const n = s.players.length
+  for (let k = 1; k <= n; k++) {
+    const i = (a.turn + k) % n
+    const q = s.players[i]
+    if (!q.bankrupt && !a.passed.includes(i) && i !== a.leader) return i
+  }
+  return a.turn
+}
+
+/** Tras cada puja o retirada: retira a quien no puede subir, cierra la subasta o pasa el turno. */
+function auctionAdvance(s: GameState) {
+  const a = s.auction!
+  for (const q of s.players) {
+    if (q.bankrupt || a.passed.includes(q.id) || q.id === a.leader) continue
+    if (q.money <= a.bid) {
+      a.passed.push(q.id)
+      log(s, `${q.name} no puede subir de ${money(a.bid)} y se retira.`)
+    }
+  }
+  const active = s.players.filter((q) => !q.bankrupt && !a.passed.includes(q.id))
+  const onlyLeaderLeft = a.leader !== null && active.every((q) => q.id === a.leader)
+  if (onlyLeaderLeft || (a.leader === null && active.length === 0)) return closeAuction(s)
+  a.turn = nextBidder(s, a)
+}
+
+function closeAuction(s: GameState) {
+  const a = s.auction!
+  if (a.leader !== null) resolveAuction(s, a.leader, a.bid)
+  else resolveAuction(s, null)
+}
+
+/** Quien tiene el turno de la subasta puja una cantidad mayor que la actual (y que pueda pagar). */
+export function auctionBid(s: GameState, amount: number) {
+  assertPhase(s, 'auction')
+  const a = s.auction!
+  const p = s.players[a.turn]
+  if (!Number.isInteger(amount) || amount <= a.bid) throw new Error('La puja debe superar la actual')
+  if (amount > p.money) throw new Error('No tiene dinero suficiente')
+  a.bid = amount
+  a.leader = p.id
+  log(s, `${p.name} puja ${money(amount)}.`)
+  auctionAdvance(s)
+}
+
+/** Quien tiene el turno se retira de la subasta. */
+export function auctionPass(s: GameState) {
+  assertPhase(s, 'auction')
+  const a = s.auction!
+  const p = s.players[a.turn]
+  a.passed.push(p.id)
+  log(s, `${p.name} se retira de la subasta.`)
+  auctionAdvance(s)
+}
+
+/** Cierra la subasta directamente (ganador y precio ya decididos); null = nadie puja. */
 export function resolveAuction(s: GameState, winner: number | null, price = 0) {
   assertPhase(s, 'auction')
   const position = s.auction!.position
@@ -297,6 +395,7 @@ export function resolveAuction(s: GameState, winner: number | null, price = 0) {
     s.players[winner].money -= price
     s.properties[position].owner = winner
     log(s, `${s.players[winner].name} gana la subasta de ${s.board[position].name} por ${money(price)}.`)
+    emit(s, 'buy')
   } else {
     log(s, `Nadie puja por ${s.board[position].name}.`)
   }
@@ -348,12 +447,14 @@ export function declareBankruptcy(s: GameState) {
   p.bankrupt = true
   s.debt = null
   log(s, `${p.name} se declara en quiebra.`)
+  emit(s, 'bankrupt')
 
   const alive = s.players.filter((x) => !x.bankrupt)
   if (alive.length === 1) {
     s.winner = alive[0].id
     s.phase = 'gameOver'
     log(s, `${alive[0].name} gana la partida.`)
+    emit(s, 'win')
   } else {
     s.rolledDouble = false
     s.phase = 'endTurn'
@@ -371,6 +472,7 @@ export function settleDebt(s: GameState) {
   else if (d.creditor === 'parking') s.parkingPot += d.amount
   s.debt = null
   log(s, `${p.name} salda su deuda de ${money(d.amount)}.`)
+  emit(s, 'pay')
 
   if (d.resume === 'roll') {
     p.inJail = false
@@ -393,6 +495,7 @@ function drawCard(s: GameState, deck: 'federation' | 'surprise') {
   if (card.action.type !== 'getOutOfJail') s.decks[deck].push(card)
   s.card = { deck, card }
   s.phase = 'card'
+  emit(s, 'card')
   log(s, `${currentPlayer(s).name} roba una carta de ${deck === 'federation' ? 'Federación' : 'Sorpresa'}: ${card.text}`)
 }
 
@@ -407,9 +510,13 @@ export function resolveCard(s: GameState) {
   switch (a.type) {
     case 'receive':
       p.money += a.amount
+      emit(s, 'receive')
       return afterLanding(s)
     case 'pay':
-      if (charge(s, p.id, a.amount, 'bank')) afterLanding(s)
+      if (charge(s, p.id, a.amount, 'bank')) {
+        emit(s, 'pay')
+        afterLanding(s)
+      }
       return
     case 'collectFromEach':
       // Simplificación: quien no llega paga lo que tenga.
@@ -419,6 +526,7 @@ export function resolveCard(s: GameState) {
         q.money -= amount
         p.money += amount
       }
+      emit(s, 'receive')
       return afterLanding(s)
     case 'moveTo':
       placeAt(s, a.position, a.position < p.position) // cobra Salida si da la vuelta
@@ -444,7 +552,10 @@ export function resolveCard(s: GameState) {
       }
       const total = seats * a.perSeat + stands * a.perStand
       log(s, `${p.name} tiene ${seats} asientos y ${stands} tribunas: paga ${money(total)}.`)
-      if (total === 0 || charge(s, p.id, total, 'bank')) afterLanding(s)
+      if (total === 0 || charge(s, p.id, total, 'bank')) {
+        if (total > 0) emit(s, 'pay')
+        afterLanding(s)
+      }
       return
     }
     case 'payOrDrawSurprise':
@@ -500,18 +611,27 @@ function land(s: GameState) {
       return afterLanding(s)
     }
     log(s, `${p.name} paga ${money(rent)} de alquiler a ${s.players[ps.owner].name} por ${sq.name}.`)
-    if (charge(s, p.id, rent, ps.owner)) afterLanding(s)
+    if (charge(s, p.id, rent, ps.owner)) {
+      emit(s, 'rent')
+      afterLanding(s)
+    }
     return
   }
 
   switch (sq.kind) {
     case 'penalty':
       log(s, `${p.name} paga ${money(sq.amount)}: ${sq.name}.`)
-      if (charge(s, p.id, sq.amount, 'bank')) afterLanding(s)
+      if (charge(s, p.id, sq.amount, 'bank')) {
+        emit(s, 'pay')
+        afterLanding(s)
+      }
       return
     case 'parking':
       log(s, `${p.name} deja ${money(sq.amount)} en el Parking.`)
-      if (charge(s, p.id, sq.amount, 'parking')) afterLanding(s)
+      if (charge(s, p.id, sq.amount, 'parking')) {
+        emit(s, 'pay')
+        afterLanding(s)
+      }
       return
     case 'goToJail':
       goToJail(s)

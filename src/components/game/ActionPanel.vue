@@ -42,24 +42,25 @@ function rollDice() {
   }, ANIM_MS)
 }
 
-// Subasta
-const bidder = ref<number | null>(null)
-const bid = ref(0)
+// Subasta por pujas
+const auction = computed(() => s.value.auction)
+const auctionSq = computed(() => (auction.value ? s.value.board[auction.value.position] : null))
+const auctionPrice = computed(() => (auctionSq.value && isProperty(auctionSq.value) ? auctionSq.value.price : 0))
+const bidder = computed(() => (auction.value ? s.value.players[auction.value.turn] : null))
+const leader = computed(() => (auction.value?.leader != null ? s.value.players[auction.value.leader] : null))
+const raises = [500, 1000, 5000]
+const custom = ref(0)
 watch(
-  () => s.value.phase,
-  (phase) => {
-    if (phase === 'auction') {
-      bidder.value = null
-      bid.value = price.value
-    }
-  },
-  { immediate: true },
+  () => auction.value?.bid,
+  () => (custom.value = 0),
 )
-const bidderMoney = computed(() => (bidder.value === null ? 0 : s.value.players[bidder.value].money))
-const canAward = computed(() => bidder.value !== null && bid.value >= 0 && bid.value <= bidderMoney.value)
-function award() {
-  store.resolveAuction(bidder.value, bid.value)
-}
+const canCustom = computed(
+  () => !!auction.value && !!bidder.value && custom.value > auction.value.bid && custom.value <= bidder.value.money,
+)
+
+// Quién decide ahora (puede no ser el jugador en turno: subasta o deuda) y bloqueo de botones
+const actor = computed(() => store.actingPlayer ?? p.value)
+const locked = computed(() => store.moving || store.aiActing)
 
 // Deuda
 const debtor = computed(() => (s.value.debt ? s.value.players[s.value.debt.debtor] : null))
@@ -67,13 +68,15 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
 </script>
 
 <template>
-  <div class="flex w-full max-w-xl flex-col items-center gap-3 text-center">
+  <fieldset class="m-0 flex w-full max-w-xl flex-col items-center gap-3 border-0 p-0 text-center" :disabled="locked">
     <!-- Cabecera: jugador en turno y dados -->
     <div class="flex items-center gap-2 text-lg font-semibold">
-      <PawnIcon :id="p.id" :px="34" />
-      {{ p.name }}
-      <span class="font-normal text-slate-600">· {{ fmt(p.money) }}</span>
+      <PawnIcon :id="actor.id" :px="34" />
+      {{ actor.name }}
+      <span v-if="actor.ai" class="rounded bg-violet-100 px-1.5 text-xs font-medium text-violet-800">IA</span>
+      <span class="font-normal text-slate-600">· {{ fmt(actor.money) }}</span>
     </div>
+    <p v-if="store.aiActing && !store.moving" class="text-sm italic text-slate-500">pensando…</p>
     <div v-if="shownDice" class="flex items-center justify-center gap-3">
       <DiceView :value="shownDice[0]" :px="56" :rolling="rolling" />
       <DiceView :value="shownDice[1]" :px="56" :rolling="rolling" />
@@ -121,23 +124,31 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       </div>
     </template>
 
-    <!-- Subasta -->
-    <template v-else-if="s.phase === 'auction'">
+    <!-- Subasta por pujas -->
+    <template v-else-if="s.phase === 'auction' && auction && auctionSq && bidder">
       <p>
-        Subasta de <strong>{{ square.name }}</strong> (precio {{ fmt(price) }})
+        Subasta de <strong>{{ auctionSq.name }}</strong> <span class="text-slate-500">(precio {{ fmt(auctionPrice) }})</span>
       </p>
-      <div class="flex flex-wrap items-center justify-center gap-2">
-        <select v-model="bidder" :class="field">
-          <option :value="null" disabled>Ganador…</option>
-          <option v-for="q in s.players.filter((x) => !x.bankrupt)" :key="q.id" :value="q.id">
-            {{ q.name }} ({{ fmt(q.money) }})
-          </option>
-        </select>
-        <input v-model.number="bid" type="number" min="0" step="500" :class="[field, 'w-28']" />
+      <p>
+        Puja actual:
+        <strong>{{ auction.bid ? fmt(auction.bid) : 'ninguna' }}</strong>
+        <template v-if="leader"> · {{ leader.name }}</template>
+      </p>
+      <div class="flex flex-wrap justify-center gap-2">
+        <button
+          v-for="inc in raises"
+          :key="inc"
+          :class="btn"
+          :disabled="auction.bid + inc > bidder.money"
+          @click="store.auctionBid(auction.bid + inc)"
+        >
+          +{{ fmt(inc) }} ({{ fmt(auction.bid + inc) }})
+        </button>
       </div>
-      <div class="flex gap-2">
-        <button :class="btnPrimary" :disabled="!canAward" @click="award()">Adjudicar</button>
-        <button :class="btn" @click="store.resolveAuction(null, 0)">Nadie puja</button>
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <input v-model.number="custom" type="number" min="0" step="500" placeholder="Otra cantidad" :class="[field, 'w-32']" />
+        <button :class="btnPrimary" :disabled="!canCustom" @click="store.auctionBid(custom)">Pujar</button>
+        <button :class="btn" @click="store.auctionPass()">Retirarse</button>
       </div>
     </template>
 
@@ -164,5 +175,5 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <p class="text-xl font-bold">🏆 Gana {{ s.winner !== null ? s.players[s.winner].name : '' }}</p>
       <button :class="btnPrimary" @click="store.quit()">Nueva partida</button>
     </template>
-  </div>
+  </fieldset>
 </template>
