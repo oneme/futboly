@@ -51,6 +51,7 @@ export function buildBoard(): Square[] {
       mortgage: s.mortgage,
       buildCost: s.build,
       rents: s.rents.map((r) => r.rent) as StadiumRents,
+      rentLabels: s.rents.map((r) => r.title),
       image: s.path,
       colors: s.colors,
     }))
@@ -64,6 +65,7 @@ export function buildBoard(): Square[] {
       price: s.price,
       mortgage: s.mortgage,
       rentByOwned: s.rents.map((r) => r.rent),
+      rentLabels: s.rents.map((r) => r.title),
       image: s.path,
       cardImage: s.card,
     }))
@@ -77,6 +79,7 @@ export function buildBoard(): Square[] {
       price: s.price,
       mortgage: s.mortgage,
       diceMultiplierByOwned: s.rents.map((r) => r.rent),
+      rentLabels: s.rents.map((r) => r.title),
       image: s.path,
       cardImage: s.card,
     }))

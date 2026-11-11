@@ -9,7 +9,7 @@ import type { PropertySquare, StadiumSquare } from './types'
 type Check = string | null
 
 const MANAGE_PHASES = ['roll', 'buy', 'endTurn']
-const money = (n: number) => n.toLocaleString('es-ES')
+const money = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 // ---------- Utilidades ----------
 

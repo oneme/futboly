@@ -10,6 +10,7 @@ import PawnIcon from './PawnIcon.vue'
 
 /** Una casilla del tablero, a escala 1 (el tablero entero se escala desde BoardView). */
 const props = defineProps<{ sq: Square; state?: PropertyState; pawns: Player[]; currentId: number }>()
+const emit = defineEmits<{ hover: [position: number | null] }>()
 
 const cell = computed(() => gridCell(props.sq.position))
 
@@ -38,7 +39,12 @@ const flipped = computed(() => cell.value.side === 'top')
 
 <template>
   <div class="relative z-10" :title="sq.name">
-    <div class="absolute overflow-hidden bg-white" :style="imgBox">
+    <div
+      class="absolute overflow-hidden bg-white"
+      :style="imgBox"
+      @mouseenter="isProperty(sq) && emit('hover', sq.position)"
+      @mouseleave="emit('hover', null)"
+    >
       <img
         v-if="imageUrl(sq.image)"
         :src="imageUrl(sq.image)"

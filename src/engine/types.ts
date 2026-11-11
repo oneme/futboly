@@ -42,6 +42,8 @@ export interface StadiumSquare extends SquareBase {
   /** Precio de cada asiento (y de la tribuna, pendiente de confirmar). */
   buildCost: number
   rents: StadiumRents
+  /** Textos de cada alquiler, tal como vienen en el JSON ("zona sin asientos", "con 1 silla"...). */
+  rentLabels: string[]
   colors: { top: string; bottom: string; style: number }
 }
 
@@ -54,6 +56,7 @@ export interface StadiumServiceSquare extends SquareBase {
   cardImage: string
   /** Alquiler según cuántos servicios de estadio posea el dueño (índice 0 = 1 servicio). */
   rentByOwned: number[]
+  rentLabels: string[]
 }
 
 /** Servicios de club: Material Deportivo, Autocares. */
@@ -65,6 +68,7 @@ export interface ClubServiceSquare extends SquareBase {
   cardImage: string
   /** Multiplicador de los dados según servicios de club poseídos (índice 0 = 1 servicio). */
   diceMultiplierByOwned: number[]
+  rentLabels: string[]
 }
 
 export type PropertySquare = StadiumSquare | StadiumServiceSquare | ClubServiceSquare

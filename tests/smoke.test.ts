@@ -125,4 +125,44 @@ describe('GameView', () => {
     await roll.trigger('click')
     expect(w.findAll('img[alt^="Dado"]').length).toBe(2)
   })
+
+  it('hover: la tarjeta de precios aparece sobre una concesión y desaparece al salir', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    useMatchStore().start(['Ana', 'Beto'])
+    await w.vm.$nextTick()
+    const imgBox = (title: string) => w.findAll(`[title="${title}"]`).find((e) => e.element.tagName === 'DIV')!.find('div')
+
+    // Estadio: título de propiedad con alquileres, precio de compra e hipoteca
+    const camp = imgBox('Camp Nou')
+    await camp.trigger('mouseenter')
+    expect(w.text()).toContain('título de propiedad')
+    expect(w.text()).toContain('265.000') // alquiler con tribuna (formato con punto)
+    expect(w.text()).toContain('valor hipotecario')
+    expect(w.text()).toContain('Libre')
+    await camp.trigger('mouseleave')
+    expect(w.text()).not.toContain('título de propiedad')
+
+    // Servicio de estadio y de club
+    await imgBox('Almohadillas').trigger('mouseenter')
+    expect(w.text()).toContain('servicios estadio')
+    expect(w.text()).toContain('2.500')
+    await imgBox('Autocares').trigger('mouseenter')
+    expect(w.text()).toContain('Valor de los dados')
+
+    // Con propietario y mejoras
+    const store = useMatchStore()
+    const pos = store.state!.board.findIndex((x) => x.kind === 'stadium' && x.name === 'Camp Nou')
+    store.state!.properties[pos].owner = 1
+    store.state!.properties[pos].seats = 2
+    await camp.trigger('mouseenter')
+    expect(w.text()).toContain('Propietario: Beto')
+    expect(w.text()).toContain('2 sillas')
+
+    // Los departamentos no muestran tarjeta
+    await camp.trigger('mouseleave')
+    await imgBox('Parking').trigger('mouseenter')
+    expect(w.text()).not.toContain('título de propiedad')
+  })
 })

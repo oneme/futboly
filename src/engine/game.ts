@@ -115,7 +115,7 @@ export function createGame(
 export const currentPlayer = (s: GameState) => s.players[s.current]
 const log = (s: GameState, msg: string) => s.log.push(msg)
 const die = (rng: () => number) => Math.floor(rng() * 6) + 1
-const money = (n: number) => n.toLocaleString('es-ES')
+const money = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 function assertPhase(s: GameState, ...phases: Phase[]) {
   if (!phases.includes(s.phase)) throw new Error(`Acción no permitida en la fase "${s.phase}"`)

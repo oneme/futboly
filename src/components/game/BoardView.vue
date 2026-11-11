@@ -5,6 +5,7 @@ import { BOARD_H, BOARD_W, COL_PX, ROW_PX, gridCell } from '../../lib/boardGeome
 import { imageUrl } from '../../lib/assets'
 import { isProperty } from '../../engine/game'
 import BoardCell from './BoardCell.vue'
+import PropertyCard from './PropertyCard.vue'
 
 const store = useMatchStore()
 const g = computed(() => store.state!)
@@ -37,6 +38,16 @@ const cellPlace = (position: number) => {
   const { row, col } = gridCell(position)
   return { gridRow: row, gridColumn: col }
 }
+// Casilla bajo el ratón: se muestra su tarjeta de precios.
+const hovered = ref<number | null>(null)
+const hoveredSq = computed(() => {
+  const sq = hovered.value === null ? null : g.value.board[hovered.value]
+  return sq && isProperty(sq) ? sq : null
+})
+const hoveredOwner = computed(() => {
+  const owner = hoveredSq.value ? g.value.properties[hoveredSq.value.position].owner : null
+  return owner === null ? undefined : g.value.players[owner].name
+})
 const playersAt = (position: number) => g.value.players.filter((p) => !p.bankrupt && p.position === position)
 
 // Zona central (columnas 2..12, filas 2..8) en px reales, para superponer los controles sin escalar su texto.
@@ -65,6 +76,7 @@ const centerStyle = computed(() => {
         :pawns="playersAt(sq.position)"
         :current-id="g.current"
         :style="cellPlace(sq.position)"
+        @hover="hovered = $event"
       />
 
       <!-- Centro del tablero: mazos de cartas -->
@@ -86,6 +98,15 @@ const centerStyle = computed(() => {
           />
         </div>
       </div>
+    </div>
+
+    <!-- Tarjeta de precios al pasar el ratón por una concesión (sin escalar, como en el diseño original) -->
+    <div
+      v-if="hoveredSq"
+      class="pointer-events-none absolute z-30"
+      :style="{ left: '30%', top: `${144 * scale}px` }"
+    >
+      <PropertyCard :sq="hoveredSq" :state="g.properties[hoveredSq.position]" :owner-name="hoveredOwner" />
     </div>
 
     <!-- Controles de la partida (sin escalar, para que el texto sea legible) -->
