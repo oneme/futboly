@@ -216,11 +216,12 @@ export interface TradeOffer {
 }
 
 export const canTrade = (s: GameState, t: TradeOffer): Check => {
-  const e = baseCheck(s, t.from) ?? baseCheck(s, t.to)
+  // También se puede intercambiar con una deuda pendiente: es una forma de conseguir dinero.
+  const e = baseCheck(s, t.from, true) ?? baseCheck(s, t.to, true)
   if (e) return e
   if (t.from === t.to) return 'Los jugadores deben ser distintos'
-  if (Object.values(s.properties).some((p) => p.owner === null))
-    return 'Solo se puede intercambiar cuando la Banca ya no tiene títulos'
+  if (s.rules.tradeOnlyWhenBankEmpty && Object.values(s.properties).some((p) => p.owner === null))
+    return 'Con esta regla (manual, pág. 3) solo se puede intercambiar cuando la Banca ya no tiene títulos'
   if (!t.fromPositions.length && !t.toPositions.length && !t.fromCash && !t.toCash) return 'Oferta vacía'
   for (const c of [t.fromCash, t.toCash]) if (!Number.isInteger(c) || c < 0) return 'Importe no válido'
   if (s.players[t.from].money < t.fromCash || s.players[t.to].money < t.toCash)
@@ -253,7 +254,7 @@ export const trade = action(canTrade, (s, t) => {
 // ---------- Venta de la carta "Salga del Banquillo" ----------
 
 export const canSellJailCard = (s: GameState, from: number, to: number, index: number, price: number): Check => {
-  const e = baseCheck(s, from) ?? baseCheck(s, to)
+  const e = baseCheck(s, from, true) ?? baseCheck(s, to, true)
   if (e) return e
   if (from === to) return 'Los jugadores deben ser distintos'
   if (!s.players[from].jailCards[index]) return 'No tiene esa carta'

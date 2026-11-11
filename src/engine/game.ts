@@ -33,6 +33,16 @@ export interface Auction {
   turn: number // a quién le toca decidir
 }
 
+/** Reglas opcionales de la partida. */
+export interface GameRules {
+  /**
+   * Regla del manual (pág. 3): los jugadores solo pueden cambiar o vender concesiones entre ellos
+   * cuando la Banca ya no tiene títulos. Desactivada por defecto: se puede intercambiar siempre.
+   */
+  tradeOnlyWhenBankEmpty: boolean
+}
+export const DEFAULT_RULES: GameRules = { tradeOnlyWhenBankEmpty: false }
+
 export interface PlayerSpec {
   name: string
   /** Jugador controlado por la máquina (ver ai.ts). */
@@ -84,6 +94,7 @@ export interface GameState {
   /** Sucesos recientes para sonidos y animaciones; eventCount cuenta todos los emitidos. */
   events: GameEventType[]
   eventCount: number
+  rules: GameRules
 }
 
 export const isProperty = (sq: Square): sq is PropertySquare =>
@@ -102,6 +113,7 @@ export function createGame(
   specs: (string | PlayerSpec)[],
   board: Square[] = buildBoard(),
   rng: () => number = Math.random,
+  rules: Partial<GameRules> = {},
 ): GameState {
   if (specs.length < 2 || specs.length > 6) throw new Error('De 2 a 6 jugadores')
   const properties: Record<number, PropertyState> = {}
@@ -135,6 +147,7 @@ export function createGame(
     log: [],
     events: [],
     eventCount: 0,
+    rules: { ...DEFAULT_RULES, ...rules },
   }
 }
 

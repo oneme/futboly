@@ -13,12 +13,17 @@ const players = ref([
   { name: 'Jugador 1', ai: false },
   { name: 'Jugador 2', ai: true },
 ])
+const tradeOnlyWhenBankEmpty = ref(false)
 const canAdd = computed(() => players.value.length < 6)
 const canStart = computed(() => players.value.length >= 2 && players.value.every((p) => p.name.trim()))
 
 const addPlayer = () => players.value.push({ name: `Jugador ${players.value.length + 1}`, ai: true })
 const removePlayer = (i: number) => players.value.splice(i, 1)
-const start = () => store.start(players.value.map((p) => ({ name: p.name.trim(), ai: p.ai })))
+const start = () =>
+  store.start(
+    players.value.map((p) => ({ name: p.name.trim(), ai: p.ai })),
+    { tradeOnlyWhenBankEmpty: tradeOnlyWhenBankEmpty.value },
+  )
 
 // Registro de eventos con scroll automático al final.
 const logBox = ref<HTMLElement | null>(null)
@@ -53,6 +58,14 @@ watch(
         ✕
       </button>
     </div>
+
+    <label class="flex items-start gap-2 text-sm text-slate-600">
+      <input v-model="tradeOnlyWhenBankEmpty" type="checkbox" class="mt-0.5" />
+      <span>
+        Regla del manual: solo se puede intercambiar cuando la Banca ya no tiene concesiones
+        <span class="text-slate-400">(sin marcar, se puede intercambiar siempre)</span>
+      </span>
+    </label>
 
     <div class="flex flex-wrap gap-2">
       <button

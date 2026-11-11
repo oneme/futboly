@@ -68,14 +68,18 @@ describe('GameView', () => {
     expect(w.text()).toContain('Intercambiar con')
   })
 
-  it('intercambio desde la interfaz cuando la Banca ya no tiene títulos', async () => {
+  it('intercambio desde la interfaz (incluso con títulos en la Banca)', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const w = mount(GameView, { global: { plugins: [pinia] } })
     const store = useMatchStore()
     store.start(['Ana', 'Beto'])
     const s = store.state!
-    Object.keys(s.properties).forEach((k, i) => (s.properties[+k].owner = i % 2)) // reparto total
+    // Reparto parcial: la Banca conserva la mayoría de los títulos (la regla opcional no está activa)
+    Object.keys(s.properties).slice(0, 8).forEach((k, i) => (s.properties[+k].owner = i % 2))
+    expect(Object.values(s.properties).some((p) => p.owner === null)).toBe(true)
+    const owners = () => Object.values(s.properties).map((p) => p.owner)
+    const before = owners()
     const aPos = +Object.keys(s.properties).find((k) => s.properties[+k].owner === 0)!
     store.openManager(0)
     await w.vm.$nextTick()
@@ -90,8 +94,8 @@ describe('GameView', () => {
     expect(ok.attributes('disabled')).toBeUndefined()
     await ok.trigger('click')
     expect(s.properties[aPos].owner).toBe(1) // la primera de Ana pasa a Beto
-    const swapped = Object.values(s.properties).filter((p, i) => p.owner !== i % 2).length
-    expect(swapped).toBe(2)
+    const after = owners()
+    expect(after.filter((o, i) => o !== before[i]).length).toBe(2)
   })
 
   it('assets: peones, dados, sillas por lado y tribuna se pintan con sus imágenes', async () => {

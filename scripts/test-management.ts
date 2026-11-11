@@ -95,19 +95,47 @@ test('Hipotecas: exigen vender mejoras; levantar cuesta +10 %; grupo hipotecado 
   assert.equal(g.players[0].money, 150_500 - 3_300)
 })
 
-test('Intercambios: solo sin títulos en la Banca, sin hipotecas ni mejoras', () => {
+test('Intercambios: permitidos siempre por defecto; sin hipotecas ni mejoras', () => {
   const { g, a, b } = betisGame()
   const atocha = posOf(g, 22)
   g.properties[atocha].owner = 1
   const offer = { from: 0, to: 1, fromPositions: [a], toPositions: [atocha], fromCash: 0, toCash: 1_000 }
-  assert.match(canTrade(g, offer)!, /Banca/)
-  for (const p of Object.values(g.properties)) if (p.owner === null) p.owner = 2
+  assert.ok(Object.values(g.properties).some((p) => p.owner === null)) // la Banca aún tiene títulos
+  assert.equal(canTrade(g, offer), null)
   trade(g, offer)
   assert.equal(g.properties[a].owner, 1)
   assert.equal(g.properties[atocha].owner, 0)
   assert.equal(g.players[0].money, 151_000) // Ana recibe los 1.000 que paga Beto
   g.properties[b].mortgaged = true
   assert.match(canTrade(g, { ...offer, fromPositions: [b], toPositions: [], toCash: 0 })!, /hipotecada/)
+  g.properties[b].mortgaged = false
+  g.properties[b].seats = 1 // mejoras en el grupo
+  assert.match(canTrade(g, { ...offer, fromPositions: [b], toPositions: [], toCash: 0 })!, /mejoras/)
+})
+
+test('Regla opcional del manual: solo intercambiar cuando la Banca no tiene títulos', () => {
+  const g = createGame(names, undefined, undefined, { tradeOnlyWhenBankEmpty: true })
+  const a = posOf(g, 1)
+  const atocha = posOf(g, 22)
+  g.properties[a].owner = 0
+  g.properties[atocha].owner = 1
+  const offer = { from: 0, to: 1, fromPositions: [a], toPositions: [atocha], fromCash: 0, toCash: 0 }
+  assert.match(canTrade(g, offer)!, /Banca/)
+  for (const p of Object.values(g.properties)) if (p.owner === null) p.owner = 2
+  assert.equal(canTrade(g, offer), null)
+})
+
+test('Intercambiar con una deuda pendiente (para conseguir dinero)', () => {
+  const g = createGame(names)
+  const t1 = posOf(g, 22)
+  g.properties[t1].owner = 0
+  g.players[0].money = 1_000
+  roll(g, rigged(2, 2)) // Multa y Cierre: 20.000 -> deuda
+  assert.equal(g.phase, 'debt')
+  trade(g, { from: 0, to: 1, fromPositions: [t1], toPositions: [], fromCash: 0, toCash: 30_000 })
+  assert.equal(g.players[0].money, 31_000)
+  settleDebt(g)
+  assert.equal(g.players[0].money, 11_000)
 })
 
 test('Deuda: hipotecar para pagar y reanudar el turno', () => {

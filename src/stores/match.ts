@@ -3,7 +3,8 @@ import { computed, ref, watch } from 'vue'
 import * as engine from '../engine/game'
 import * as mgmt from '../engine/management'
 import { actor, aiStep } from '../engine/ai'
-import type { GameEventType, GameState, PlayerSpec } from '../engine/game'
+import type { GameEventType, GameRules, GameState, PlayerSpec } from '../engine/game'
+import { DEFAULT_RULES } from '../engine/game'
 import type { TradeOffer } from '../engine/management'
 import { nextPawnStep } from '../lib/pawnPath'
 import { isMuted, playSound, setMuted, type SoundName } from '../lib/sound'
@@ -153,8 +154,8 @@ export const useMatchStore = defineStore('match', () => {
   )
 
   // ---------- Ciclo de la partida ----------
-  function start(players: (string | PlayerSpec)[]) {
-    state.value = engine.createGame(players)
+  function start(players: (string | PlayerSpec)[], rules: Partial<GameRules> = {}) {
+    state.value = engine.createGame(players, undefined, undefined, rules)
     save()
     soundCursor = 0
     pendingSounds = []
@@ -167,6 +168,7 @@ export const useMatchStore = defineStore('match', () => {
     const s = JSON.parse(raw) as GameState
     // Partidas guardadas con versiones anteriores del motor.
     s.events ??= []
+    s.rules = { ...DEFAULT_RULES, ...s.rules }
     s.eventCount ??= 0
     for (const p of s.players) p.ai ??= false
     if (s.auction && !('bid' in s.auction)) s.auction = null
