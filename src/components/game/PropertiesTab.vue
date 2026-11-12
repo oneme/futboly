@@ -6,6 +6,7 @@ import { unmortgageCost } from '../../engine/management'
 import { fmt } from '../../lib/colors'
 import { chairUrl, tribuneUrl } from '../../lib/assets'
 import type { PropertySquare, StadiumSquare } from '../../engine/types'
+import PropertyChip from './PropertyChip.vue'
 
 const props = defineProps<{ pid: number }>()
 const store = useMatchStore()
@@ -56,7 +57,11 @@ const reason = (r: string | null) => r ?? ''
 
   <div v-else class="flex flex-col gap-2">
     <section v-for="grp in groups" :key="grp.title" class="rounded-lg border border-slate-200 p-2">
-      <h3 class="mb-1 text-sm font-semibold">{{ grp.title }}</h3>
+      <h3 class="mb-1.5 text-sm font-semibold">
+        <!-- Estadios: banner con los colores del equipo; servicios: texto -->
+        <PropertyChip v-if="grp.squares[0].kind === 'stadium'" :sq="grp.squares[0]" :label="grp.title" size="md" />
+        <template v-else>{{ grp.title }}</template>
+      </h3>
 
       <div
         v-for="sq in grp.squares"
@@ -64,11 +69,12 @@ const reason = (r: string | null) => r ?? ''
         class="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 py-1 first:border-t-0"
       >
         <div class="min-w-36">
-          <div class="text-sm">
-            {{ sq.name }}
-            <span v-if="sq.kind === 'stadium'" class="text-slate-500">({{ sq.part === 'general' ? 'General' : 'Tribuna' }})</span>
-          </div>
-          <div class="text-xs text-slate-500">{{ status(sq) || 'sin mejoras' }}</div>
+          <PropertyChip
+            :sq="sq"
+            :label="sq.kind === 'stadium' ? (sq.part === 'general' ? 'General' : 'Tribuna') : undefined"
+            :mortgaged="g.properties[sq.position].mortgaged"
+          />
+          <div class="mt-0.5 text-xs text-slate-500">{{ status(sq) || 'sin mejoras' }}</div>
         </div>
 
         <div class="ml-auto flex flex-wrap justify-end gap-1">

@@ -5,6 +5,8 @@ import { PLAYER_COLORS, fmt, playerTextColor, playerTint } from '../../lib/color
 import { isProperty } from '../../engine/game'
 import { AI_PROFILES } from '../../engine/aiProfiles'
 import PawnIcon from './PawnIcon.vue'
+import type { PropertySquare } from '../../engine/types'
+import PropertyChip from './PropertyChip.vue'
 
 const store = useMatchStore()
 const g = computed(() => store.state!)
@@ -13,7 +15,7 @@ const isActive = (id: number) => store.actingPlayer?.id === id
 
 /** Propiedades de un jugador, ordenadas por posición en el tablero. */
 const propertiesOf = (id: number) =>
-  g.value.board.filter((sq) => isProperty(sq) && g.value.properties[sq.position].owner === id)
+  g.value.board.filter((sq): sq is PropertySquare => isProperty(sq) && g.value.properties[sq.position].owner === id)
 </script>
 
 <template>
@@ -52,13 +54,8 @@ const propertiesOf = (id: number) =>
         </button>
       </div>
       <ul v-if="!p.bankrupt && propertiesOf(p.id).length" class="mt-1 flex flex-wrap gap-1">
-        <li
-          v-for="sq in propertiesOf(p.id)"
-          :key="sq.position"
-          class="rounded bg-slate-100 px-1.5 py-0.5 text-[11px]"
-          :class="g.properties[sq.position].mortgaged ? 'line-through opacity-60' : ''"
-        >
-          {{ sq.name }}<template v-if="sq.kind === 'stadium'"> ({{ sq.part === 'general' ? 'G' : 'T' }})</template>
+        <li v-for="sq in propertiesOf(p.id)" :key="sq.position" class="max-w-full">
+          <PropertyChip :sq="sq" :mortgaged="g.properties[sq.position].mortgaged" />
         </li>
       </ul>
     </div>

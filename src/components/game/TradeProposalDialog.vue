@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { describeSide } from '../../engine/trading'
+import { fmt } from '../../lib/colors'
+import type { PropertySquare } from '../../engine/types'
 import PawnIcon from './PawnIcon.vue'
+import PropertyChip from './PropertyChip.vue'
+
+const sq = (pos: number) => s.value.board[pos] as PropertySquare
 
 /** Propuesta de trato de una IA a un jugador humano: hay que aceptarla o rechazarla. */
 const store = useMatchStore()
@@ -22,9 +26,17 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
       <p class="mb-3 text-sm text-slate-500">Para {{ s.players[offer.to].name }}:</p>
       <dl class="mb-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
         <dt class="font-medium text-emerald-700">Recibes</dt>
-        <dd>{{ describeSide(s, offer.fromPositions, offer.fromCash) }}</dd>
+        <dd class="flex flex-wrap items-center gap-1">
+          <PropertyChip v-for="pos in offer.fromPositions" :key="pos" :sq="sq(pos)" />
+          <span v-if="offer.fromCash">{{ fmt(offer.fromCash) }}</span>
+          <span v-if="!offer.fromPositions.length && !offer.fromCash">nada</span>
+        </dd>
         <dt class="font-medium text-red-700">Entregas</dt>
-        <dd>{{ describeSide(s, offer.toPositions, offer.toCash) }}</dd>
+        <dd class="flex flex-wrap items-center gap-1">
+          <PropertyChip v-for="pos in offer.toPositions" :key="pos" :sq="sq(pos)" />
+          <span v-if="offer.toCash">{{ fmt(offer.toCash) }}</span>
+          <span v-if="!offer.toPositions.length && !offer.toCash">nada</span>
+        </dd>
       </dl>
       <div class="flex justify-end gap-2">
         <button :class="btn" @click="store.answerProposal(false)">Rechazar</button>

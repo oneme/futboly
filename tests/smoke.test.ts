@@ -7,6 +7,11 @@ import { nextPawnStep } from '../src/lib/pawnPath'
 import { PLAYER_COLORS } from '../src/lib/colors'
 import BuildingStrip from '../src/components/game/BuildingStrip.vue'
 import CardView from '../src/components/game/CardView.vue'
+import PropertyChip from '../src/components/game/PropertyChip.vue'
+import { buildBoard } from '../src/engine/data'
+import { readableText } from '../src/lib/teamColors'
+import { readFileSync } from 'node:fs'
+import estadios from '../src/json/estadios.json'
 import { useMatchStore } from '../src/stores/match'
 
 describe('GameView', () => {
@@ -289,6 +294,7 @@ describe('GameView', () => {
       expect(s.proposal).toBeTruthy()
       expect(w.text()).toContain('Robot te propone un trato')
       expect(w.text()).toContain('Villamarín') // describe lo que se intercambia
+      expect(w.find('[data-chip]').exists()).toBe(true) // con píldoras de colores
       expect(s.phase).toBe('roll') // el Robot espera, no tira
 
       const accept = w.findAll('button').find((b) => b.text() === 'Aceptar')!
@@ -540,5 +546,99 @@ describe('GameView', () => {
     expect(s.auction!.turn).toBe(2)
     expect(ring().text()).toContain('Carla')
     expect((ring().element as HTMLElement).style.borderColor).toBe(rgb(PLAYER_COLORS[2]))
+  })
+
+  describe('píldoras con los colores del equipo', () => {
+    const board = buildBoard()
+    const byId = (id: number) => board.find((x) => 'id' in x && x.id === id) as never
+    const chip = (id: number, extra: Record<string, unknown> = {}) =>
+      mount(PropertyChip, { props: { sq: byId(id), ...extra } })
+
+    it('estadio con dos franjas y parte inferior blanca (Betis)', () => {
+      const w = chip(1) // Benito Villamarín (General): top "bg-green-1000,bg-white", bottom "bg-white"
+      expect(w.findAll('[data-stripes] i').map((i) => i.classes())).toEqual([['block', 'min-w-0', 'flex-1', 'bg-green-1000'], ['block', 'min-w-0', 'flex-1', 'bg-white']])
+      const label = w.find('[data-label]')
+      expect(label.classes()).toEqual(expect.arrayContaining(['bg-white', 'text-black']))
+      expect(label.text()).toBe('Benito Villamarín (G)')
+      expect(chip(2).find('[data-label]').text()).toBe('Benito Villamarín (T)')
+    })
+
+    it('si la parte inferior ya trae color de texto no se le añade otro (Sporting)', () => {
+      const label = chip(4).find('[data-label]') // bottom "bg-sky-1200 text-white"
+      expect(label.classes()).toEqual(expect.arrayContaining(['bg-sky-1200', 'text-white']))
+      expect(label.classes()).not.toContain('text-black')
+    })
+
+    it('equipos de barras (parte inferior vacía): fondo blanco y texto negro (Sevilla)', () => {
+      const w = chip(12)
+      expect(w.findAll('[data-stripes] i').length).toBe(1)
+      expect(w.find('[data-stripes] i').classes()).toContain('bg-red-1100')
+      expect(w.find('[data-label]').classes()).toEqual(expect.arrayContaining(['bg-white', 'text-black']))
+    })
+
+    it('servicios: color propio con texto legible; hipotecada se tacha y se atenúa', () => {
+      const gorras = chip(11)
+      expect(gorras.text()).toBe('Gorras')
+      expect((gorras.find('[data-label]').element as HTMLElement).style.backgroundColor).toBe('rgb(33, 150, 209)')
+      const hip = chip(11, { mortgaged: true })
+      expect(hip.find('[data-label]').classes()).toContain('line-through')
+      expect(hip.classes()).toContain('opacity-60')
+      expect(hip.attributes('title')).toContain('hipotecada')
+      expect(readableText('#ffffff')).toBe('#000000')
+      expect(readableText('#111111')).toBe('#ffffff')
+      expect(readableText('#2196d1')).toBe('#ffffff')
+      expect(readableText('#e4bc47')).toBe('#000000')
+    })
+
+    it('Tailwind genera todas las clases de color de estadios.json (lista segura en main.css)', () => {
+      const css = readFileSync('src/assets/main.css', 'utf-8')
+      const safelist = css.match(/@source inline\("([^"]+)"\)/)![1].split(/\s+/)
+      const used = new Set<string>()
+      for (const e of estadios) for (const k of ['top', 'bottom'] as const) for (const c of e.colors[k].split(/[,\s]+/)) if (c) used.add(c)
+      expect([...used].filter((c) => !safelist.includes(c))).toEqual([])
+    })
+
+    it('el panel de jugadores muestra las propiedades con los colores del equipo', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start(['Ana', 'Beto'])
+      const s = store.state!
+      s.properties[1].owner = 0 // Betis General
+      s.properties[board.findIndex((x) => 'id' in x && x.id === 11)].owner = 0 // Gorras
+      await w.vm.$nextTick()
+      const card = w.findAll('[data-chip]').filter((c) => c.text().includes('Villamarín'))
+      expect(card.length).toBe(1)
+      expect(card[0].find('[data-stripes] i').classes()).toContain('bg-green-1000')
+      expect(w.findAll('[data-chip]').some((c) => c.text() === 'Gorras')).toBe(true)
+    })
+
+    it('el gestor: banner del equipo y píldoras General/Tribuna; los intercambios también las usan', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start(['Ana', 'Beto'])
+      const s = store.state!
+      s.properties[1].owner = 0
+      s.properties[3].owner = 0
+      s.properties[board.findIndex((x) => 'id' in x && x.id === 4)].owner = 1 // Molinón General (de Beto)
+      store.openManager(0)
+      await w.vm.$nextTick()
+      const dialog = w.find('.fixed')
+      const chips = dialog.findAll('[data-chip]')
+      const texts = chips.map((c) => c.text())
+      expect(texts).toContain('Real Betis · Benito Villamarín') // banner del grupo
+      expect(texts).toContain('General')
+      expect(texts).toContain('Tribuna')
+      const banner = chips.find((c) => c.text().startsWith('Real Betis'))!
+      expect(banner.find('[data-stripes] i').classes()).toContain('bg-green-1000')
+
+      await w.findAll('button').find((b) => b.text().includes('Intercambios'))!.trigger('click')
+      const selects = w.findAll('select')
+      await selects[selects.length - 1].setValue(1)
+      expect(w.find('.fixed').findAll('[data-chip]').some((c) => c.text().includes('El Molinón'))).toBe(true)
+    })
   })
 })

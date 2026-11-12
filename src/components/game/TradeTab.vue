@@ -3,6 +3,8 @@ import { computed, ref, watch } from 'vue'
 import { useMatchStore } from '../../stores/match'
 import { isProperty } from '../../engine/game'
 import type { TradeOffer } from '../../engine/management'
+import type { PropertySquare } from '../../engine/types'
+import PropertyChip from './PropertyChip.vue'
 import { fmt } from '../../lib/colors'
 
 const props = defineProps<{ pid: number }>()
@@ -44,7 +46,7 @@ watch(to, (value) => {
 })
 
 const ownedBy = (id: number) =>
-  g.value.board.filter((sq) => isProperty(sq) && g.value.properties[sq.position].owner === id)
+  g.value.board.filter((sq): sq is PropertySquare => isProperty(sq) && g.value.properties[sq.position].owner === id)
 
 const offer = computed<TradeOffer | null>(() =>
   to.value === null
@@ -106,7 +108,7 @@ function sellCard() {
           <h3 class="mb-1 text-sm font-semibold">{{ g.players[pid].name }} ofrece</h3>
           <label v-for="sq in ownedBy(pid)" :key="sq.position" class="flex items-center gap-2 py-0.5 text-sm">
             <input v-model="mine" type="checkbox" :value="sq.position" />
-            {{ sq.name }}<span v-if="sq.kind === 'stadium'" class="text-slate-500">({{ sq.part === 'general' ? 'G' : 'T' }})</span>
+            <PropertyChip :sq="sq" :mortgaged="g.properties[sq.position].mortgaged" />
           </label>
           <p v-if="!ownedBy(pid).length" class="text-xs text-slate-500">Sin concesiones.</p>
           <label class="mt-2 flex items-center gap-2 text-sm">
@@ -118,7 +120,7 @@ function sellCard() {
           <h3 class="mb-1 text-sm font-semibold">{{ g.players[to].name }} ofrece</h3>
           <label v-for="sq in ownedBy(to)" :key="sq.position" class="flex items-center gap-2 py-0.5 text-sm">
             <input v-model="theirs" type="checkbox" :value="sq.position" />
-            {{ sq.name }}<span v-if="sq.kind === 'stadium'" class="text-slate-500">({{ sq.part === 'general' ? 'G' : 'T' }})</span>
+            <PropertyChip :sq="sq" :mortgaged="g.properties[sq.position].mortgaged" />
           </label>
           <p v-if="!ownedBy(to).length" class="text-xs text-slate-500">Sin concesiones.</p>
           <label class="mt-2 flex items-center gap-2 text-sm">
