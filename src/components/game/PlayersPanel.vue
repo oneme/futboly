@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { PLAYER_COLORS, fmt } from '../../lib/colors'
+import { PLAYER_COLORS, fmt, playerTextColor, playerTint } from '../../lib/colors'
 import { isProperty } from '../../engine/game'
 import { AI_PROFILES } from '../../engine/aiProfiles'
 import PawnIcon from './PawnIcon.vue'
 
 const store = useMatchStore()
 const g = computed(() => store.state!)
+/** Jugador activo: el que tiene que decidir ahora (en una subasta o una deuda no es el del turno). */
+const isActive = (id: number) => store.actingPlayer?.id === id
 
 /** Propiedades de un jugador, ordenadas por posición en el tablero. */
 const propertiesOf = (id: number) =>
@@ -20,11 +22,17 @@ const propertiesOf = (id: number) =>
       v-for="p in g.players"
       :key="p.id"
       class="rounded-lg border bg-white p-2 shadow-sm"
-      :class="[p.id === g.current && !p.bankrupt ? 'border-emerald-500 ring-1 ring-emerald-500' : 'border-slate-200', p.bankrupt ? 'opacity-40' : '']"
+      :class="[isActive(p.id) && !p.bankrupt ? '' : 'border-slate-200', p.bankrupt ? 'opacity-40' : '']"
+      :style="
+        isActive(p.id) && !p.bankrupt
+          ? { borderColor: PLAYER_COLORS[p.id], boxShadow: `0 0 0 2px ${PLAYER_COLORS[p.id]}`, backgroundColor: playerTint(p.id) }
+          : {}
+      "
+      :data-active="isActive(p.id) && !p.bankrupt ? '' : undefined"
     >
       <div class="flex items-center gap-2">
         <PawnIcon :id="p.id" :px="28" />
-        <span class="font-semibold" :style="{ color: PLAYER_COLORS[p.id] }">{{ p.name }}</span>
+        <span class="font-semibold" :style="{ color: playerTextColor(p.id) }">{{ p.name }}</span>
         <span v-if="p.ai" class="rounded bg-violet-100 px-1.5 text-xs text-violet-800" title="Jugador controlado por la máquina">
           IA · {{ AI_PROFILES[p.level ?? 'normal'].label }}
         </span>

@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import GameView from '../src/views/GameView.vue'
 import { BOARD_H, BOARD_W, MAX_BOARD_SCALE, boardScale, gridCell, uiZoom } from '../src/lib/boardGeometry'
 import { nextPawnStep } from '../src/lib/pawnPath'
+import { PLAYER_COLORS } from '../src/lib/colors'
 import BuildingStrip from '../src/components/game/BuildingStrip.vue'
 import CardView from '../src/components/game/CardView.vue'
 import { useMatchStore } from '../src/stores/match'
@@ -499,5 +500,45 @@ describe('GameView', () => {
     s.phase = 'debt' // Gestionar propiedades / Saldar deuda / quiebra
     await w.vm.$nextTick()
     readable()
+  })
+
+  it('colores de jugador: los del peón, y el anillo del jugador activo lleva su color', async () => {
+    // seis colores distintos, en el orden de los peones (azul, naranja, negro, rojo, amarillo, verde)
+    expect(new Set(PLAYER_COLORS).size).toBe(6)
+    const rgb = (hex: string) => {
+      const n = parseInt(hex.slice(1), 16)
+      return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`
+    }
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    const store = useMatchStore()
+    store.start(['Ana', 'Beto', 'Carla'])
+    await w.vm.$nextTick()
+    const ring = () => {
+      const active = w.findAll('[data-active]')
+      expect(active.length).toBe(1) // solo un jugador con anillo
+      return active[0]
+    }
+    expect(ring().text()).toContain('Ana')
+    expect((ring().element as HTMLElement).style.borderColor).toBe(rgb(PLAYER_COLORS[0]))
+    expect((ring().element as HTMLElement).style.boxShadow).toContain(rgb(PLAYER_COLORS[0]))
+
+    // el anillo pasa al siguiente jugador y cambia de color
+    const s = store.state!
+    s.phase = 'endTurn'
+    store.endTurn()
+    await w.vm.$nextTick()
+    expect(ring().text()).toContain('Beto')
+    expect((ring().element as HTMLElement).style.borderColor).toBe(rgb(PLAYER_COLORS[1]))
+
+    // en una subasta el anillo sigue a quien tiene que pujar
+    s.players[1].position = 3
+    s.phase = 'buy'
+    store.declineBuy()
+    await w.vm.$nextTick()
+    expect(s.auction!.turn).toBe(2)
+    expect(ring().text()).toContain('Carla')
+    expect((ring().element as HTMLElement).style.borderColor).toBe(rgb(PLAYER_COLORS[2]))
   })
 })
