@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMatchStore } from '../stores/match'
 import BoardView from '../components/game/BoardView.vue'
 import ActionPanel from '../components/game/ActionPanel.vue'
@@ -9,9 +9,17 @@ import PawnIcon from '../components/game/PawnIcon.vue'
 import TradeProposalDialog from '../components/game/TradeProposalDialog.vue'
 import GameOverDialog from '../components/game/GameOverDialog.vue'
 import { AI_LEVELS, AI_PROFILES, type AILevel } from '../engine/aiProfiles'
+import { SIDEBAR_BASE_WIDTH, uiZoom } from '../lib/boardGeometry'
 import { logoUrl, titleUrl } from '../lib/assets'
 
 const store = useMatchStore()
+
+// En pantallas grandes el panel lateral crece (zoom) y el ancho de la página ya no se limita.
+const zoom = ref(uiZoom(window.innerWidth))
+const onResize = () => (zoom.value = uiZoom(window.innerWidth))
+onMounted(() => window.addEventListener('resize', onResize))
+onBeforeUnmount(() => window.removeEventListener('resize', onResize))
+const gridStyle = computed(() => ({ '--side-w': `${SIDEBAR_BASE_WIDTH * zoom.value}px` }))
 const players = ref<{ name: string; ai: boolean; level: AILevel }[]>([
   { name: 'Jugador 1', ai: false, level: 'normal' },
   { name: 'Jugador 2', ai: true, level: 'normal' },
@@ -106,12 +114,12 @@ watch(
   </div>
 
   <!-- Partida -->
-  <div v-else class="mx-auto grid max-w-[1600px] gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+  <div v-else class="grid w-full gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_var(--side-w)]" :style="gridStyle">
     <BoardView>
       <ActionPanel />
     </BoardView>
 
-    <aside class="flex min-h-0 flex-col gap-3">
+    <aside class="flex min-h-0 w-full flex-col gap-3 lg:w-[320px]" :style="{ zoom }">
       <PlayersPanel />
       <div
         ref="logBox"

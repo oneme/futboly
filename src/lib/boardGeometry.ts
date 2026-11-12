@@ -18,6 +18,25 @@ export const ROW_PX = [139, ...Array<number>(7).fill(95), 139]
 export const BOARD_W = COL_PX.reduce((a, b) => a + b, 0) // 1445
 export const BOARD_H = ROW_PX.reduce((a, b) => a + b, 0) // 943
 
+/** Ampliación máxima del tablero respecto a su tamaño real (1445 x 943). */
+export const MAX_BOARD_SCALE = 2
+
+/** Escala a la que cabe el tablero en el ancho del contenedor y en el alto de la ventana. */
+export function boardScale(containerWidth: number, viewportHeight: number, margin = 24): number {
+  const byWidth = containerWidth / BOARD_W
+  const byHeight = (viewportHeight - margin) / BOARD_H
+  const scale = Math.min(MAX_BOARD_SCALE, byWidth, byHeight)
+  return scale > 0 && Number.isFinite(scale) ? scale : 1
+}
+
+/** Ampliación de la interfaz que rodea al tablero (panel lateral) en pantallas grandes: 1 hasta 1700 px, tope 1,6. */
+export function uiZoom(viewportWidth: number): number {
+  return Math.min(1.6, Math.max(1, viewportWidth / 1700))
+}
+
+/** Ancho base del panel lateral en px (se multiplica por uiZoom). */
+export const SIDEBAR_BASE_WIDTH = 320
+
 export type Side = 'bottom' | 'left' | 'top' | 'right'
 
 export interface Cell {

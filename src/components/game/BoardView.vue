@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { BOARD_H, BOARD_W, COL_PX, ROW_PX, gridCell } from '../../lib/boardGeometry'
+import { BOARD_H, BOARD_W, COL_PX, ROW_PX, boardScale, gridCell } from '../../lib/boardGeometry'
 import { imageUrl } from '../../lib/assets'
 import { isProperty } from '../../engine/game'
 import BoardCell from './BoardCell.vue'
@@ -10,22 +10,28 @@ import PropertyCard from './PropertyCard.vue'
 const store = useMatchStore()
 const g = computed(() => store.state!)
 
-// El tablero se dibuja a su tamaño real (1445 x 943) y se escala para ocupar el ancho disponible.
-const MAX_SCALE = 1.2
+// El tablero se dibuja a su tamaño real (1445 x 943) y se escala para llenar el ancho disponible
+// sin pasarse del alto de la ventana.
 const wrap = ref<HTMLElement | null>(null)
 const scale = ref(1)
 let observer: ResizeObserver | undefined
 const measure = () => {
-  if (wrap.value) scale.value = Math.min(MAX_SCALE, wrap.value.clientWidth / BOARD_W) || 1
+  if (wrap.value) scale.value = boardScale(wrap.value.clientWidth, window.innerHeight)
 }
 onMounted(() => {
   measure()
+  window.addEventListener('resize', measure)
   if (typeof ResizeObserver !== 'undefined' && wrap.value) {
     observer = new ResizeObserver(measure)
     observer.observe(wrap.value)
   }
 })
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', measure)
+  observer?.disconnect()
+})
+/** Los controles del centro (texto, botones, dados) crecen con el tablero cuando se ve más grande que el real. */
+const panelZoom = computed(() => Math.max(1, scale.value * 0.9))
 
 const gridStyle = computed(() => ({
   width: `${BOARD_W}px`,
@@ -113,7 +119,9 @@ const centerStyle = computed(() => {
 
     <!-- Controles de la partida (sin escalar, para que el texto sea legible) -->
     <div class="absolute z-20 flex items-center justify-center overflow-auto" :style="centerStyle">
-      <slot />
+      <div class="flex w-full justify-center" :style="{ zoom: panelZoom }">
+        <slot />
+      </div>
     </div>
   </div>
 </template>

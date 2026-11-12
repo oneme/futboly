@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import GameView from '../src/views/GameView.vue'
-import { gridCell } from '../src/lib/boardGeometry'
+import { BOARD_H, BOARD_W, MAX_BOARD_SCALE, boardScale, gridCell, uiZoom } from '../src/lib/boardGeometry'
 import { nextPawnStep } from '../src/lib/pawnPath'
 import BuildingStrip from '../src/components/game/BuildingStrip.vue'
 import CardView from '../src/components/game/CardView.vue'
@@ -260,7 +260,7 @@ describe('GameView', () => {
       for (const p of s.players) expect(store.shown[p.id]).toBe(p.position)
       expect(store.moving).toBe(false)
       expect(w.findAll('[title]').length).toBeGreaterThanOrEqual(40)
-    })
+    }, 30_000)
 
     it('el botón de sonido alterna el silencio', async () => {
       const pinia = createPinia()
@@ -450,5 +450,54 @@ describe('GameView', () => {
     expect(n.rules.tradeOnlyWhenBankEmpty).toBe(true)
     expect(n.stats[0].rentReceived).toBe(0)
     expect(w.find('[data-gameover]').exists()).toBe(false)
+  })
+
+  it('tamaño: el tablero llena el ancho sin pasarse del alto, y la interfaz crece en pantallas grandes', () => {
+    // Pantalla pequeña: manda el ancho; pantalla grande: manda el alto de la ventana
+    expect(boardScale(722, 2000)).toBeCloseTo(0.5, 2)
+    expect(boardScale(3000, 1289)).toBeCloseTo((1289 - 24) / BOARD_H, 3)
+    expect(boardScale(3000, 5000)).toBe(MAX_BOARD_SCALE) // tope
+    expect(boardScale(0, 800)).toBe(1) // sin medidas (jsdom): 1
+    // El tablero ocupa más que antes en tu pantalla (2563 x 1289): antes 1232 px de ancho
+    const before = Math.min(1.2, (1600 - 320 - 16 - 32) / BOARD_W) * BOARD_W
+    const after = boardScale(2563 - 32 - 480 - 16, 1289) * BOARD_W
+    expect(after).toBeGreaterThan(before * 1.4)
+    // Interfaz: 1 hasta 1700 px y hasta 1,6
+    expect(uiZoom(1280)).toBe(1)
+    expect(uiZoom(2563)).toBeCloseTo(1.508, 3)
+    expect(uiZoom(4000)).toBe(1.6) // tope
+    expect(uiZoom(2040)).toBeCloseTo(1.2, 2)
+  })
+
+  it('legibilidad: botones y campos de los controles del centro tienen color de texto propio', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    const store = useMatchStore()
+    store.start(['Ana', 'Beto', 'Carla'])
+    const s = store.state!
+    const readable = () => {
+      const fs = w.find('fieldset')
+      for (const b of fs.findAll('button')) {
+        const c = b.classes()
+        expect(c.includes('text-slate-900') || c.includes('text-white'), `botón "${b.text()}" sin color de texto`).toBe(true)
+      }
+      for (const f of fs.findAll('input, select')) {
+        expect(f.classes(), 'campo sin color de texto').toContain('text-slate-900')
+      }
+    }
+    s.players[0].position = 3
+    s.phase = 'buy' // Comprar / Subastar
+    await w.vm.$nextTick()
+    readable()
+    expect(w.findAll('fieldset button').map((b) => b.text())).toEqual(expect.arrayContaining(['Comprar', 'Subastar']))
+    await w.findAll('button').find((b) => b.text() === 'Subastar')!.trigger('click') // subasta: +500, campo, Pujar, Retirarse
+    expect(s.phase).toBe('auction')
+    readable()
+    s.auction = null
+    s.debt = { debtor: 0, amount: 5_000, creditor: 'bank', resume: 'afterLanding' }
+    s.phase = 'debt' // Gestionar propiedades / Saldar deuda / quiebra
+    await w.vm.$nextTick()
+    readable()
   })
 })

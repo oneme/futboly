@@ -9,10 +9,10 @@ import CardView from './CardView.vue'
 
 // Clases de Tailwind como constantes (evita @apply, que cambia entre Tailwind 3 y 4).
 const btn =
-  'rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40'
+  'rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40'
 const btnPrimary =
   'rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40'
-const field = 'rounded-md border border-slate-300 bg-white px-2 py-1 text-sm'
+const field = 'rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900'
 
 const store = useMatchStore()
 const s = computed(() => store.state!)
