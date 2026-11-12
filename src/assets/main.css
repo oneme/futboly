@@ -12,6 +12,14 @@
     --color-sky-1000: oklch(0.41 0.11 247.43);
     --color-sky-1100: oklch(0.59 0.14 243.33);
     --color-sky-1200: oklch(0.5 0.13 249.53);
+
+    /* Cartas robadas: Federación en verde, Sorpresa en morado (borde oscuro, fondo claro) */
+    --color-federation-border: #1b6b3a;
+    --color-federation-bg: #def2e0;
+    --color-federation-ink: #14532d;
+    --color-surprise-border: #5b2a86;
+    --color-surprise-bg: #eadcf5;
+    --color-surprise-ink: #46206b;
 }
 
 body {

@@ -5,6 +5,7 @@ import GameView from '../src/views/GameView.vue'
 import { gridCell } from '../src/lib/boardGeometry'
 import { nextPawnStep } from '../src/lib/pawnPath'
 import BuildingStrip from '../src/components/game/BuildingStrip.vue'
+import CardView from '../src/components/game/CardView.vue'
 import { useMatchStore } from '../src/stores/match'
 
 describe('GameView', () => {
@@ -378,5 +379,76 @@ describe('GameView', () => {
     const stand = strip('left', 0, true).findAll('img')
     expect(stand.length).toBe(1)
     expect(style(stand[0].element).width).toBe('48px')
+  })
+
+  it('cartas: Federación en verde y Sorpresa en morado (borde oscuro, fondo claro)', () => {
+    const fed = mount(CardView, { props: { deck: 'federation', text: 'Cobre 5.000' } })
+    expect(fed.classes()).toEqual(expect.arrayContaining(['border-federation-border', 'bg-federation-bg']))
+    expect(fed.text()).toContain('Federación')
+    const sur = mount(CardView, { props: { deck: 'surprise', text: 'Pague 2.000' } })
+    expect(sur.classes()).toEqual(expect.arrayContaining(['border-surprise-border', 'bg-surprise-bg']))
+    expect(sur.text()).toContain('Sorpresa')
+  })
+
+  it('pantalla de inicio: el nivel de la IA solo aparece para las IAs y llega al motor', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    // Jugador 1 humano (sin selector) y Jugador 2 IA (con selector Fácil / Normal / Difícil)
+    const selects = w.findAll('select[data-level]')
+    expect(selects.length).toBe(1)
+    expect(selects[0].findAll('option').map((o) => o.text())).toEqual(['Fácil', 'Normal', 'Difícil'])
+    await selects[0].setValue('hard')
+    await w.findAll('button').find((b) => b.text().includes('Empezar'))!.trigger('click')
+    const store = useMatchStore()
+    expect(store.state!.players.map((p) => [p.ai, p.level])).toEqual([[false, 'normal'], [true, 'hard']])
+    expect(w.text()).toContain('IA · Difícil') // insignia en el panel de jugadores
+  })
+
+  it('fin de partida: resumen con clasificación, revancha y volver a ver el tablero', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const w = mount(GameView, { global: { plugins: [pinia] } })
+    const store = useMatchStore()
+    store.start([{ name: 'Ana' }, { name: 'Robot', ai: true, level: 'easy' }, { name: 'Carla' }], { tradeOnlyWhenBankEmpty: true })
+    const s = store.state!
+    s.properties[1].owner = 0
+    s.stats[0].rentReceived = 12_000
+    // Beto... (Robot) y Carla se arruinan: gana Ana
+    for (const [id, turn] of [[1, 3], [2, 6]] as const) {
+      s.turnCount = turn
+      s.current = id
+      s.players[id].money = 0
+      s.debt = { debtor: id, amount: 1, creditor: 'bank', resume: 'afterLanding' }
+      s.phase = 'debt'
+      store.declareBankruptcy()
+    }
+    await w.vm.$nextTick()
+    const dialog = w.find('[data-gameover]')
+    expect(dialog.exists()).toBe(true)
+    expect(dialog.text()).toContain('Gana Ana')
+    const rows = dialog.findAll('tbody tr').map((r) => r.text())
+    expect(rows.length).toBe(3)
+    expect(rows[0]).toContain('Ana')
+    expect(rows[1]).toContain('Carla') // aguantó más que el Robot
+    expect(rows[2]).toContain('Robot')
+    expect(rows[2]).toContain('IA · Fácil')
+    expect(rows[2]).toContain('Eliminado en el turno 3')
+    expect(dialog.text()).toContain('Más alquileres cobrados')
+
+    // Ver el tablero: se cierra, y desde el panel de acciones se puede reabrir
+    await dialog.findAll('button').find((b) => b.text() === 'Ver el tablero')!.trigger('click')
+    expect(w.find('[data-gameover]').exists()).toBe(false)
+    await w.findAll('button').find((b) => b.text() === 'Ver resumen')!.trigger('click')
+    expect(w.find('[data-gameover]').exists()).toBe(true)
+
+    // Revancha: mismos jugadores, niveles y reglas, partida nueva
+    await w.find('[data-gameover]').findAll('button').find((b) => b.text() === 'Revancha')!.trigger('click')
+    const n = store.state!
+    expect(n.phase).toBe('roll')
+    expect(n.players.map((p) => [p.name, p.ai, p.level])).toEqual([['Ana', false, 'normal'], ['Robot', true, 'easy'], ['Carla', false, 'normal']])
+    expect(n.rules.tradeOnlyWhenBankEmpty).toBe(true)
+    expect(n.stats[0].rentReceived).toBe(0)
+    expect(w.find('[data-gameover]').exists()).toBe(false)
   })
 })

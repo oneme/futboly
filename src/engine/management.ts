@@ -1,4 +1,4 @@
-import { emit, isProperty, type GameState } from './game'
+import { emit, isProperty, stat, type GameState } from './game'
 import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
 
 /**
@@ -63,6 +63,7 @@ export const canBuildSeat = (s: GameState, pid: number, pos: number): Check => {
 export const buildSeat = action(canBuildSeat, (s, pid, pos) => {
   const sq = stadiumAt(s, pos)!
   s.players[pid].money -= sq.buildCost
+  stat(s, pid, 'spentOnBuilding', sq.buildCost)
   s.properties[pos].seats++
   s.bankSeats--
   s.log.push(`${s.players[pid].name} construye un asiento en ${sq.name} (${sq.part}) por ${money(sq.buildCost)}.`)
@@ -92,6 +93,7 @@ export const canBuildStand = (s: GameState, pid: number, pos: number): Check => 
 export const buildStand = action(canBuildStand, (s, pid, pos) => {
   const sq = stadiumAt(s, pos)!
   s.players[pid].money -= sq.buildCost
+  stat(s, pid, 'spentOnBuilding', sq.buildCost)
   s.properties[pos].seats = 0
   s.properties[pos].stand = true
   s.bankSeats += 4
@@ -240,6 +242,8 @@ export const trade = action(canTrade, (s, t) => {
   for (const pos of t.toPositions) s.properties[pos].owner = t.from
   s.players[t.from].money += t.toCash - t.fromCash
   s.players[t.to].money += t.fromCash - t.toCash
+  stat(s, t.from, 'tradesClosed')
+  stat(s, t.to, 'tradesClosed')
   s.log.push(`${s.players[t.from].name} y ${s.players[t.to].name} intercambian concesiones.`)
   emit(s, 'trade')
 })

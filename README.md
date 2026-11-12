@@ -76,3 +76,13 @@ npm test                # pruebas de interfaz (vitest + jsdom)
   (`state.proposal`); sale una ventana para aceptar o rechazar. Si se rechaza no vuelve a insistir en 8 turnos.
 - **IA ↔ IA**: negocian subiendo la oferta hasta que la otra acepte; se cierra sin intervención.
 - Los jugadores IA son de solo lectura en el gestor de propiedades.
+
+### Niveles de la IA y resumen final
+
+- **Niveles** (`src/engine/aiProfiles.ts`): fácil, normal y difícil. Cada uno es un perfil de parámetros (colchón de dinero,
+  despistes, pujas, dureza al negociar...). El difícil, además, ajusta su colchón al mayor alquiler que puede pagar en las
+  próximas 12 casillas. Valores ajustados con partidas IA contra IA: la normal gana a la fácil ~85 % y la difícil a la
+  normal ~70 % (`scripts/test-levels.ts`). Se elige por jugador en la pantalla de inicio.
+- **Resumen** (`src/engine/summary.ts`, `GameOverDialog.vue`): clasificación por patrimonio (manera rápida del manual),
+  eliminados ordenados por quién aguantó más, datos curiosos y botón de **Revancha** con los mismos jugadores y reglas.
+- **Colores de las cartas** (`main.css`): Federación en verde y Sorpresa en morado, borde oscuro y fondo claro.

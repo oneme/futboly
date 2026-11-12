@@ -29,6 +29,8 @@ export const useMatchStore = defineStore('match', () => {
   /** Jugador cuyo gestor de propiedades está abierto (null = cerrado). Solo estado de interfaz. */
   const managing = ref<number | null>(null)
   const muted = ref(isMuted())
+  /** Ventana de resumen de fin de partida (se abre sola al terminar; se puede cerrar para ver el tablero). */
+  const summaryOpen = ref(false)
 
   /** Casilla que se está mostrando de cada peón (va por detrás de la real mientras se anima). */
   const shown = ref<Record<number, number>>({})
@@ -155,9 +157,18 @@ export const useMatchStore = defineStore('match', () => {
     scheduleAI,
   )
 
+  // El resumen aparece cuando termina la partida y los peones han dejado de moverse.
+  watch(
+    () => state.value?.phase === 'gameOver' && !moving.value,
+    (ready) => {
+      if (ready) summaryOpen.value = true
+    },
+  )
+
   // ---------- Ciclo de la partida ----------
   function start(players: (string | PlayerSpec)[], rules: Partial<GameRules> = {}) {
     state.value = engine.createGame(players, undefined, undefined, rules)
+    summaryOpen.value = false
     save()
     soundCursor = 0
     pendingSounds = []
@@ -170,6 +181,8 @@ export const useMatchStore = defineStore('match', () => {
     const s = JSON.parse(raw) as GameState
     // Partidas guardadas con versiones anteriores del motor.
     s.events ??= []
+    s.stats ??= {}
+    for (const p of s.players) p.level ??= 'normal'
     s.rules = { ...DEFAULT_RULES, ...s.rules }
     s.proposal ??= null
     s.turnCount ??= 0
@@ -183,8 +196,18 @@ export const useMatchStore = defineStore('match', () => {
     syncShown()
     scheduleAI()
   }
+  /** Nueva partida con los mismos jugadores (nombres, IA y nivel) y las mismas reglas. */
+  function rematch() {
+    const s = state.value
+    if (!s) return
+    start(
+      s.players.map((p) => ({ name: p.name, ai: p.ai, level: p.level })),
+      { ...s.rules },
+    )
+  }
   function quit() {
     state.value = null
+    summaryOpen.value = false
     save()
     managing.value = null
     moving.value = false
@@ -204,8 +227,10 @@ export const useMatchStore = defineStore('match', () => {
     shown,
     moving,
     muted,
+    summaryOpen,
     toggleMute,
     start,
+    rematch,
     continueSaved,
     quit,
     // Turno

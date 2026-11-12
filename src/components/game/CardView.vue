@@ -5,14 +5,14 @@ defineProps<{ deck: 'federation' | 'surprise'; text: string }>()
 <template>
   <div
     class="w-full max-w-sm rounded-xl border-4 p-4 text-center shadow-lg"
-    :class="deck === 'federation' ? 'border-sky-600 bg-sky-50' : 'border-amber-500 bg-amber-50'"
+    :class="deck === 'federation' ? 'border-federation-border bg-federation-bg' : 'border-surprise-border bg-surprise-bg'"
   >
     <div
       class="mb-2 text-xs font-extrabold uppercase tracking-widest"
-      :class="deck === 'federation' ? 'text-sky-700' : 'text-amber-700'"
+      :class="deck === 'federation' ? 'text-federation-border' : 'text-surprise-border'"
     >
       {{ deck === 'federation' ? 'Federación' : 'Sorpresa' }}
     </div>
-    <p class="text-sm leading-snug text-slate-800">{{ text }}</p>
+    <p class="text-sm leading-snug" :class="deck === 'federation' ? 'text-federation-ink' : 'text-surprise-ink'">{{ text }}</p>
   </div>
 </template>

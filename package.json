@@ -10,7 +10,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "test": "vitest run --environment jsdom",
-    "test:engine": "tsx scripts/test-engine.ts && tsx scripts/test-management.ts && tsx scripts/test-cards.ts && tsx scripts/test-ai.ts && tsx scripts/test-trading.ts",
+    "test:engine": "tsx scripts/test-engine.ts && tsx scripts/test-management.ts && tsx scripts/test-cards.ts && tsx scripts/test-ai.ts && tsx scripts/test-trading.ts && tsx scripts/test-levels.ts",
     "validate-data": "tsx scripts/validate-data.ts"
   },
   "dependencies": {

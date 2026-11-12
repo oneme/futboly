@@ -69,7 +69,7 @@ const centerStyle = computed(() => {
 
 <template>
   <div ref="wrap" class="relative w-full" :style="{ height: `${BOARD_H * scale}px` }">
-    <div class="absolute left-0 top-0 grid origin-top-left bg-slate-800" :style="gridStyle">
+    <div class="absolute left-0 top-0 grid origin-top-left" :style="gridStyle">
       <BoardCell
         v-for="sq in g.board"
         :key="sq.position"
@@ -82,7 +82,7 @@ const centerStyle = computed(() => {
       />
 
       <!-- Centro del tablero: mazos de cartas -->
-      <div class="relative z-0 bg-emerald-50" style="grid-column: 2 / 13; grid-row: 2 / 9">
+      <div class="relative z-0" style="grid-column: 2 / 13; grid-row: 2 / 9">
         <div class="absolute left-8 top-1/2 h-[200px] w-[122px] -translate-y-1/2">
           <img
             v-if="imageUrl('src/assets/departments/card_surprise.webp')"

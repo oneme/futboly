@@ -7,22 +7,24 @@ import PlayersPanel from '../components/game/PlayersPanel.vue'
 import ManagerDialog from '../components/game/ManagerDialog.vue'
 import PawnIcon from '../components/game/PawnIcon.vue'
 import TradeProposalDialog from '../components/game/TradeProposalDialog.vue'
+import GameOverDialog from '../components/game/GameOverDialog.vue'
+import { AI_LEVELS, AI_PROFILES, type AILevel } from '../engine/aiProfiles'
 import { logoUrl, titleUrl } from '../lib/assets'
 
 const store = useMatchStore()
-const players = ref([
-  { name: 'Jugador 1', ai: false },
-  { name: 'Jugador 2', ai: true },
+const players = ref<{ name: string; ai: boolean; level: AILevel }[]>([
+  { name: 'Jugador 1', ai: false, level: 'normal' },
+  { name: 'Jugador 2', ai: true, level: 'normal' },
 ])
 const tradeOnlyWhenBankEmpty = ref(false)
 const canAdd = computed(() => players.value.length < 6)
 const canStart = computed(() => players.value.length >= 2 && players.value.every((p) => p.name.trim()))
 
-const addPlayer = () => players.value.push({ name: `Jugador ${players.value.length + 1}`, ai: true })
+const addPlayer = () => players.value.push({ name: `Jugador ${players.value.length + 1}`, ai: true, level: 'normal' })
 const removePlayer = (i: number) => players.value.splice(i, 1)
 const start = () =>
   store.start(
-    players.value.map((p) => ({ name: p.name.trim(), ai: p.ai })),
+    players.value.map((p) => ({ name: p.name.trim(), ai: p.ai, level: p.level })),
     { tradeOnlyWhenBankEmpty: tradeOnlyWhenBankEmpty.value },
   )
 
@@ -43,14 +45,23 @@ watch(
   <div v-if="!store.state" class="mx-auto flex max-w-md flex-col gap-4 p-6">
     <img v-if="titleUrl()" :src="titleUrl()" alt="Futboly" class="mx-auto w-full max-w-xs" />
     <h1 v-else class="text-3xl font-extrabold tracking-tight">FUTBOLY</h1>
-    <p class="text-center text-slate-600">De 2 a 6 jugadores en el mismo dispositivo; marca "IA" para los que juegue la máquina.</p>
+    <p class="text-center text-white">De 2 a 6 jugadores en el mismo dispositivo; marca "IA" para los que juegue la máquina.</p>
 
     <div v-for="(player, i) in players" :key="i" class="flex items-center gap-2">
       <PawnIcon :id="i" :px="32" />
       <input v-model="player.name" class="flex-1 rounded-md border border-slate-300 px-3 py-1.5" maxlength="20" />
-      <label class="flex items-center gap-1 text-sm text-slate-600" title="Jugador controlado por la máquina">
+      <label class="flex items-center gap-1 text-sm text-white" title="Jugador controlado por la máquina">
         <input v-model="player.ai" type="checkbox" /> IA
       </label>
+      <select
+        v-if="player.ai"
+        v-model="player.level"
+        class="rounded-md border border-slate-300 bg-white px-1 py-1 text-sm"
+        title="Nivel de la IA"
+        data-level
+      >
+        <option v-for="level in AI_LEVELS" :key="level" :value="level">{{ AI_PROFILES[level].label }}</option>
+      </select>
       <button
         v-if="players.length > 2"
         class="rounded-md border border-slate-300 px-3 hover:bg-slate-50"
@@ -60,11 +71,11 @@ watch(
       </button>
     </div>
 
-    <label class="flex items-start gap-2 text-sm text-slate-600">
+    <label class="flex items-start gap-2 text-sm text-white">
       <input v-model="tradeOnlyWhenBankEmpty" type="checkbox" class="mt-0.5" />
       <span>
         Regla del manual: solo se puede intercambiar cuando la Banca ya no tiene concesiones
-        <span class="text-slate-400">(sin marcar, se puede intercambiar siempre)</span>
+        <span class="text-green-100">(sin marcar, se puede intercambiar siempre)</span>
       </span>
     </label>
 
@@ -109,7 +120,7 @@ watch(
         <p v-for="(line, i) in log" :key="i" class="py-0.5">{{ line }}</p>
       </div>
       <div class="flex items-center gap-4">
-        <button class="text-xs text-slate-500 underline" @click="store.quit()">Abandonar partida</button>
+        <button class="text-xs text-white underline" @click="store.quit()">Abandonar partida</button>
         <button
           class="rounded border border-slate-300 px-2 py-0.5 text-sm hover:bg-slate-50"
           :title="store.muted ? 'Activar sonido' : 'Silenciar'"
@@ -122,5 +133,6 @@ watch(
 
     <ManagerDialog />
     <TradeProposalDialog />
+    <GameOverDialog />
   </div>
 </template>

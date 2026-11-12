@@ -68,22 +68,22 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
 </script>
 
 <template>
-  <fieldset class="m-0 flex w-full max-w-xl flex-col items-center gap-3 border-0 p-0 text-center" :disabled="locked">
+  <fieldset class="m-0 flex w-full max-w-xl flex-col items-center gap-3 border-0 p-0 text-center text-white" :disabled="locked">
     <!-- Cabecera: jugador en turno y dados -->
     <div class="flex items-center gap-2 text-lg font-semibold">
       <PawnIcon :id="actor.id" :px="34" />
       {{ actor.name }}
       <span v-if="actor.ai" class="rounded bg-violet-100 px-1.5 text-xs font-medium text-violet-800">IA</span>
-      <span class="font-normal text-slate-600">· {{ fmt(actor.money) }}</span>
+      <span class="font-normal text-green-100">· {{ fmt(actor.money) }}</span>
     </div>
-    <p v-if="store.aiActing && !store.moving" class="text-sm italic text-slate-500">pensando…</p>
-    <p v-else-if="s.proposal" class="text-sm italic text-slate-500">esperando tu respuesta a la propuesta…</p>
+    <p v-if="store.aiActing && !store.moving" class="text-sm italic text-green-100">pensando…</p>
+    <p v-else-if="s.proposal" class="text-sm italic text-green-100">esperando tu respuesta a la propuesta…</p>
     <div v-if="shownDice" class="flex items-center justify-center gap-3">
       <DiceView :value="shownDice[0]" :px="56" :rolling="rolling" />
       <DiceView :value="shownDice[1]" :px="56" :rolling="rolling" />
-      <span v-if="!rolling" class="text-xl font-semibold text-slate-700">= {{ shownDice[0] + shownDice[1] }}</span>
+      <span v-if="!rolling" class="text-xl font-semibold">= {{ shownDice[0] + shownDice[1] }}</span>
     </div>
-    <div v-if="s.parkingPot > 0" class="text-sm text-slate-600">Bote del Parking: {{ fmt(s.parkingPot) }}</div>
+    <div v-if="s.parkingPot > 0" class="text-sm text-green-100">Bote del Parking: {{ fmt(s.parkingPot) }}</div>
 
     <!-- Tirar -->
     <template v-if="s.phase === 'roll'">
@@ -128,7 +128,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
     <!-- Subasta por pujas -->
     <template v-else-if="s.phase === 'auction' && auction && auctionSq && bidder">
       <p>
-        Subasta de <strong>{{ auctionSq.name }}</strong> <span class="text-slate-500">(precio {{ fmt(auctionPrice) }})</span>
+        Subasta de <strong>{{ auctionSq.name }}</strong> <span class="text-green-100">(precio {{ fmt(auctionPrice) }})</span>
       </p>
       <p>
         Puja actual:
@@ -158,7 +158,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <p>
         <strong>{{ debtor.name }}</strong> debe {{ fmt(s.debt.amount) }} y tiene {{ fmt(debtor.money) }}.
       </p>
-      <p class="text-sm text-slate-600">Puede vender mejoras o hipotecar antes de pagar.</p>
+      <p class="text-sm text-green-100">Puede vender mejoras o hipotecar antes de pagar.</p>
       <div class="flex flex-wrap justify-center gap-2">
         <button :class="btn" @click="store.openManager(s.debt.debtor)">Gestionar propiedades</button>
         <button :class="btnPrimary" :disabled="!canSettle" @click="store.settleDebt()">Saldar deuda</button>
@@ -174,7 +174,11 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
     <!-- Fin de partida -->
     <template v-else-if="s.phase === 'gameOver'">
       <p class="text-xl font-bold">🏆 Gana {{ s.winner !== null ? s.players[s.winner].name : '' }}</p>
-      <button :class="btnPrimary" @click="store.quit()">Nueva partida</button>
+      <div class="flex flex-wrap justify-center gap-2">
+        <button :class="btn" @click="store.summaryOpen = true">Ver resumen</button>
+        <button :class="btnPrimary" @click="store.rematch()">Revancha</button>
+        <button :class="btn" @click="store.quit()">Nueva partida</button>
+      </div>
     </template>
   </fieldset>
 </template>

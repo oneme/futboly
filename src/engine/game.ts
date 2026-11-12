@@ -1,4 +1,5 @@
 import { buildBoard, loadCards } from './data'
+import type { AILevel } from './aiProfiles'
 import type { Card, DepartmentSquare, PropertySquare, Square, TradeOffer } from './types'
 
 export const START_MONEY = 150_000
@@ -43,16 +44,36 @@ export interface GameRules {
 }
 export const DEFAULT_RULES: GameRules = { tradeOnlyWhenBankEmpty: false }
 
+/** Estadísticas de cada jugador para el resumen final. */
+export interface PlayerStats {
+  rentPaid: number
+  rentReceived: number
+  bought: number // concesiones compradas o ganadas en subasta
+  spentOnProperties: number
+  spentOnBuilding: number
+  tradesClosed: number
+  jailVisits: number
+  /** Turno (s.turnCount) en el que quedó eliminado; null si sigue en juego. */
+  bankruptTurn: number | null
+}
+export const emptyStats = (): PlayerStats => ({
+  rentPaid: 0, rentReceived: 0, bought: 0, spentOnProperties: 0, spentOnBuilding: 0,
+  tradesClosed: 0, jailVisits: 0, bankruptTurn: null,
+})
+
 export interface PlayerSpec {
   name: string
   /** Jugador controlado por la máquina (ver ai.ts). */
   ai?: boolean
+  /** Nivel de la IA (por defecto 'normal'). */
+  level?: AILevel
 }
 
 export interface Player {
   id: number
   name: string
   ai: boolean
+  level: AILevel
   money: number
   position: number
   inJail: boolean
@@ -101,6 +122,7 @@ export interface GameState {
   turnCount: number
   /** Propuestas de la IA rechazadas: no se repiten hasta que pase el turno indicado. */
   tradeCooldown: Record<string, number>
+  stats: Record<number, PlayerStats>
 }
 
 export const isProperty = (sq: Square): sq is PropertySquare =>
@@ -134,6 +156,7 @@ export function createGame(
       id,
       name: typeof spec === 'string' ? spec : spec.name,
       ai: typeof spec === 'string' ? false : !!spec.ai,
+      level: typeof spec === 'string' ? 'normal' : (spec.level ?? 'normal'),
       money: START_MONEY, position: 0, inJail: false, jailTurns: 0, bankrupt: false, jailCards: [],
     })),
     properties,
@@ -157,6 +180,7 @@ export function createGame(
     proposal: null,
     turnCount: 0,
     tradeCooldown: {},
+    stats: Object.fromEntries(specs.map((_, id) => [id, emptyStats()])),
   }
 }
 
@@ -164,6 +188,13 @@ export function createGame(
 
 export const currentPlayer = (s: GameState) => s.players[s.current]
 const log = (s: GameState, msg: string) => s.log.push(msg)
+
+/** Suma a una estadística de un jugador (crea las de partidas guardadas antiguas). */
+export function stat(s: GameState, pid: number, key: Exclude<keyof PlayerStats, 'bankruptTurn'>, amount = 1) {
+  s.stats ??= {}
+  const st = (s.stats[pid] ??= emptyStats())
+  st[key] += amount
+}
 
 /** Anota un suceso para la interfaz (sonidos). Se guardan los últimos 60. */
 export function emit(s: GameState, type: GameEventType) {
@@ -241,6 +272,7 @@ function goToJail(s: GameState) {
   s.rolledDouble = false
   log(s, `${p.name} va directamente al Banquillo.`)
   emit(s, 'jail')
+  stat(s, p.id, 'jailVisits')
 }
 
 /** Coloca al jugador actual; cobra Salida si ha pasado por ella o cae en ella. */
@@ -340,6 +372,8 @@ export function buy(s: GameState) {
   s.properties[p.position].owner = p.id
   log(s, `${p.name} compra ${sq.name} por ${money(sq.price)}.`)
   emit(s, 'buy')
+  stat(s, p.id, 'bought')
+  stat(s, p.id, 'spentOnProperties', sq.price)
   afterLanding(s)
 }
 
@@ -418,6 +452,8 @@ export function resolveAuction(s: GameState, winner: number | null, price = 0) {
     s.properties[position].owner = winner
     log(s, `${s.players[winner].name} gana la subasta de ${s.board[position].name} por ${money(price)}.`)
     emit(s, 'buy')
+    stat(s, winner, 'bought')
+    stat(s, winner, 'spentOnProperties', price)
   } else {
     log(s, `Nadie puja por ${s.board[position].name}.`)
   }
@@ -471,6 +507,8 @@ export function declareBankruptcy(s: GameState) {
   s.debt = null
   log(s, `${p.name} se declara en quiebra.`)
   emit(s, 'bankrupt')
+  s.stats[p.id] ??= emptyStats()
+  s.stats[p.id].bankruptTurn = s.turnCount
 
   const alive = s.players.filter((x) => !x.bankrupt)
   if (alive.length === 1) {
@@ -636,6 +674,8 @@ function land(s: GameState) {
     log(s, `${p.name} paga ${money(rent)} de alquiler a ${s.players[ps.owner].name} por ${sq.name}.`)
     if (charge(s, p.id, rent, ps.owner)) {
       emit(s, 'rent')
+      stat(s, p.id, 'rentPaid', rent)
+      stat(s, ps.owner, 'rentReceived', rent)
       afterLanding(s)
     }
     return

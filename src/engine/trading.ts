@@ -1,4 +1,5 @@
 import { emit, isProperty, type GameState, type Player } from './game'
+import { AI_PROFILES, type AIProfile } from './aiProfiles'
 import { canTrade, trade } from './management'
 import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
 
@@ -13,10 +14,9 @@ import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
 
 // ---------- Valoración ----------
 
-const MIN_GAIN = 1_000
-/** Cuánto le molesta a la IA que el rival se beneficie (completar grupos, etc.) del trato. */
-const RIVAL_PENALTY = 0.35
 const COOLDOWN_TURNS = 8
+/** Parámetros de negociación según el nivel del jugador (aiProfiles.ts). */
+const profile = (s: GameState, pid: number): AIProfile => AI_PROFILES[s.players[pid].level ?? 'normal']
 
 const ownedSet = (s: GameState, pid: number) =>
   new Set(
@@ -24,7 +24,7 @@ const ownedSet = (s: GameState, pid: number) =>
   )
 
 /** Valor de un conjunto de concesiones: precio + bonus por grupos completos y parejas de servicios. */
-function portfolioValue(s: GameState, set: Set<number>): number {
+function portfolioValue(s: GameState, set: Set<number>, groupBonus: number): number {
   let v = 0
   const teams = new Map<string, StadiumSquare[]>()
   let svc = 0, svcSum = 0, club = 0, clubSum = 0
@@ -36,7 +36,7 @@ function portfolioValue(s: GameState, set: Set<number>): number {
     else (club++, (clubSum += sq.price))
   }
   for (const parts of teams.values())
-    if (parts.length === 2) v += 1.5 * (parts[0].price + parts[1].price) // grupo completo: se puede construir
+    if (parts.length === 2) v += groupBonus * (parts[0].price + parts[1].price) // grupo completo: se puede construir
   if (svc >= 2) v += 0.2 * svcSum * (svc - 1)
   if (club === 2) v += 0.4 * clubSum
   return v
@@ -64,8 +64,9 @@ function propsAfter(s: GameState, pid: number, offer: TradeOffer) {
 export function tradeDeltas(s: GameState, pid: number, offer: TradeOffer) {
   const rival = pid === offer.from ? offer.to : offer.from
   const { cashIn, cashOut } = sides(offer, pid)
-  const self = portfolioValue(s, propsAfter(s, pid, offer)) - portfolioValue(s, ownedSet(s, pid)) + cashIn - cashOut
-  const rivalProps = portfolioValue(s, propsAfter(s, rival, offer)) - portfolioValue(s, ownedSet(s, rival))
+  const bonus = profile(s, pid).groupBonus // cada IA valora los grupos a su manera, también los del rival
+  const self = portfolioValue(s, propsAfter(s, pid, offer), bonus) - portfolioValue(s, ownedSet(s, pid), bonus) + cashIn - cashOut
+  const rivalProps = portfolioValue(s, propsAfter(s, rival, offer), bonus) - portfolioValue(s, ownedSet(s, rival), bonus)
   return { self, rivalProps }
 }
 
@@ -76,8 +77,9 @@ export function evaluateOffer(s: GameState, pid: number, offer: TradeOffer): boo
     (n, pos) => n + (s.board[pos] as PropertySquare).price,
     0,
   )
-  const needed = Math.max(MIN_GAIN, 0.04 * traded)
-  return self - RIVAL_PENALTY * Math.max(0, rivalProps) >= needed
+  const prof = profile(s, pid)
+  const needed = Math.max(prof.minGain, prof.minGainPct * traded)
+  return self - prof.rivalPenalty * Math.max(0, rivalProps) >= needed
 }
 
 const nameOf = (s: GameState, pid: number) => s.players[pid].name
@@ -149,10 +151,16 @@ export function answerProposal(s: GameState, accept: boolean) {
  * Con otra IA negocia subiendo la oferta hasta que acepte; con un humano propone un precio generoso.
  * Devuelve true si ha hecho algo (cerrar un trato o dejar una propuesta pendiente).
  */
-export function aiProposeTrade(s: GameState, p: Player): boolean {
+export function aiProposeTrade(s: GameState, p: Player, rng: () => number = Math.random): boolean {
   if (s.proposal || p.money < 30_000) return false
+  const prof = profile(s, p.id)
+  // Una vez por turno decide si se anima a negociar (las IAs fáciles lo hacen pocas veces).
+  const thinkKey = `think:${p.id}`
+  if (s.tradeCooldown[thinkKey] === s.turnCount) return false
+  s.tradeCooldown[thinkKey] = s.turnCount
+  if (rng() >= prof.proposeChance) return false
   const mine = ownedSet(s, p.id)
-  const before = portfolioValue(s, mine)
+  const before = portfolioValue(s, mine, prof.groupBonus)
 
   const wanted = s.board
     .filter((x): x is PropertySquare => isProperty(x))
@@ -161,7 +169,7 @@ export function aiProposeTrade(s: GameState, p: Player): boolean {
       return owner !== null && owner !== p.id && !s.players[owner].bankrupt && !s.properties[sq.position].mortgaged
     })
     .map((sq) => {
-      const gain = portfolioValue(s, new Set([...mine, sq.position])) - before
+      const gain = portfolioValue(s, new Set([...mine, sq.position]), prof.groupBonus) - before
       return { sq, gain, owner: s.properties[sq.position].owner! }
     })
     .filter((c) => c.gain >= c.sq.price * 1.3 && (s.tradeCooldown[cooldownKey(p.id, c.sq.position)] ?? -1) < s.turnCount)
@@ -177,7 +185,7 @@ export function aiProposeTrade(s: GameState, p: Player): boolean {
     const viable = (o: TradeOffer) => p.money - o.fromCash >= 20_000 && !canTrade(s, o) && evaluateOffer(s, p.id, o)
 
     if (!target.ai) {
-      const offer = offerFor(1.8)
+      const offer = offerFor(prof.humanOfferMult)
       if (!viable(offer)) continue
       s.proposal = offer
       s.log.push(`${p.name} propone a ${target.name}: ${describeSide(s, offer.fromPositions, offer.fromCash)} por ${sqName(s, sq.position)}.`)

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
 import { PLAYER_COLORS, fmt } from '../../lib/colors'
 import { isProperty } from '../../engine/game'
+import { AI_PROFILES } from '../../engine/aiProfiles'
 import PawnIcon from './PawnIcon.vue'
 
 const store = useMatchStore()
@@ -24,7 +25,9 @@ const propertiesOf = (id: number) =>
       <div class="flex items-center gap-2">
         <PawnIcon :id="p.id" :px="28" />
         <span class="font-semibold" :style="{ color: PLAYER_COLORS[p.id] }">{{ p.name }}</span>
-        <span v-if="p.ai" class="rounded bg-violet-100 px-1.5 text-xs text-violet-800" title="Jugador controlado por la máquina">IA</span>
+        <span v-if="p.ai" class="rounded bg-violet-100 px-1.5 text-xs text-violet-800" title="Jugador controlado por la máquina">
+          IA · {{ AI_PROFILES[p.level ?? 'normal'].label }}
+        </span>
         <span v-if="p.inJail" class="rounded bg-amber-100 px-1.5 text-xs text-amber-800">Banquillo</span>
         <span v-if="p.jailCards.length" class="rounded bg-sky-100 px-1.5 text-xs text-sky-800">
           🔓 ×{{ p.jailCards.length }}
