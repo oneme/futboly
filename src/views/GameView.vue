@@ -10,9 +10,18 @@ import TradeProposalDialog from '../components/game/TradeProposalDialog.vue'
 import GameOverDialog from '../components/game/GameOverDialog.vue'
 import { AI_LEVELS, AI_PROFILES, type AILevel } from '../engine/aiProfiles'
 import { SIDEBAR_BASE_WIDTH, uiZoom } from '../lib/boardGeometry'
+import { DEFAULT_INFLATION } from '../lib/currency'
+import { useMoney } from '../lib/useMoney'
+import { useSettingsStore } from '../stores/settings'
 import { logoUrl, titleUrl } from '../lib/assets'
 
 const store = useMatchStore()
+const settings = useSettingsStore()
+const { logLine } = useMoney()
+
+const chip = 'rounded border px-2 py-0.5'
+const chipOn = 'border-emerald-600 bg-emerald-600 text-white'
+const chipOff = 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50'
 
 // En pantallas grandes el panel lateral crece (zoom) y el ancho de la página ya no se limita.
 const zoom = ref(uiZoom(window.innerWidth))
@@ -87,6 +96,25 @@ watch(
       </span>
     </label>
 
+    <label class="flex items-start gap-2 text-sm text-white">
+      <input v-model="settings.euros" type="checkbox" class="mt-0.5" />
+      <span>
+        Mostrar los importes en euros con inflación
+        <span class="text-green-100">(sin marcar, en pesetas)</span>
+      </span>
+    </label>
+    <label v-if="settings.euros" class="flex items-center gap-2 pl-6 text-sm text-white">
+      Coeficiente de inflación
+      <input
+        v-model.number="settings.inflation"
+        type="number"
+        min="0"
+        step="0.01"
+        class="w-24 rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-900"
+      />
+      <span class="text-green-100">(por defecto {{ DEFAULT_INFLATION }})</span>
+    </label>
+
     <div class="flex flex-wrap gap-2">
       <button
         class="rounded-md border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-40"
@@ -125,7 +153,26 @@ watch(
         ref="logBox"
         class="max-h-72 flex-1 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-700"
       >
-        <p v-for="(line, i) in log" :key="i" class="py-0.5">{{ line }}</p>
+        <p v-for="(line, i) in log" :key="i" class="py-0.5">{{ logLine(line) }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-white p-2 text-xs text-slate-900" data-currency>
+        <span class="font-medium">Importes:</span>
+        <button type="button" :class="[chip, !settings.euros ? chipOn : chipOff]" @click="settings.euros = false">Ptas.</button>
+        <button type="button" :class="[chip, settings.euros ? chipOn : chipOff]" @click="settings.euros = true">€ con inflación</button>
+        <label v-if="settings.euros" class="flex items-center gap-1">
+          Coef.
+          <input
+            v-model.number="settings.inflation"
+            type="number"
+            min="0"
+            step="0.01"
+            class="w-16 rounded border border-slate-300 px-1 py-0.5 text-slate-900"
+            title="Coeficiente de inflación: el importe se multiplica por (1 + coeficiente)"
+          />
+        </label>
+        <p v-if="settings.euros" class="w-full text-[11px] text-slate-500">
+          € = ptas ÷ 166,386 × (1 + coef.). Las cifras impresas en las imágenes de las casillas siguen en pesetas.
+        </p>
       </div>
       <div class="flex items-center gap-4">
         <button class="text-xs text-white underline" @click="store.quit()">Abandonar partida</button>

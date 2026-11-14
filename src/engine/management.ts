@@ -1,5 +1,6 @@
 import { emit, isProperty, stat, type GameState } from './game'
 import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
+import { money } from './money'
 
 /**
  * Gestión de propiedades: asientos, tribunas, hipotecas e intercambios.
@@ -9,7 +10,6 @@ import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
 type Check = string | null
 
 const MANAGE_PHASES = ['roll', 'buy', 'endTurn']
-const money = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 // ---------- Utilidades ----------
 

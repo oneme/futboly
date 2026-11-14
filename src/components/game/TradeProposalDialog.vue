@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import type { PropertySquare } from '../../engine/types'
 import PawnIcon from './PawnIcon.vue'
 import PropertyChip from './PropertyChip.vue'
+
+const { money } = useMoney()
 
 const sq = (pos: number) => s.value.board[pos] as PropertySquare
 
@@ -28,13 +30,13 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
         <dt class="font-medium text-emerald-700">Recibes</dt>
         <dd class="flex flex-wrap items-center gap-1">
           <PropertyChip v-for="pos in offer.fromPositions" :key="pos" :sq="sq(pos)" />
-          <span v-if="offer.fromCash">{{ fmt(offer.fromCash) }}</span>
+          <span v-if="offer.fromCash">{{ money(offer.fromCash) }}</span>
           <span v-if="!offer.fromPositions.length && !offer.fromCash">nada</span>
         </dd>
         <dt class="font-medium text-red-700">Entregas</dt>
         <dd class="flex flex-wrap items-center gap-1">
           <PropertyChip v-for="pos in offer.toPositions" :key="pos" :sq="sq(pos)" />
-          <span v-if="offer.toCash">{{ fmt(offer.toCash) }}</span>
+          <span v-if="offer.toCash">{{ money(offer.toCash) }}</span>
           <span v-if="!offer.toPositions.length && !offer.toCash">nada</span>
         </dd>
       </dl>

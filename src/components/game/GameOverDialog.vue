@@ -3,8 +3,10 @@ import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
 import { buildSummary } from '../../engine/summary'
 import { AI_PROFILES, type AILevel } from '../../engine/aiProfiles'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import PawnIcon from './PawnIcon.vue'
+
+const { money } = useMoney()
 
 /** Fin de partida: ganador, clasificación con el patrimonio de cada jugador y datos curiosos. */
 const store = useMatchStore()
@@ -69,14 +71,14 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
                 </span>
                 <span v-if="p.eliminated" class="text-xs">Eliminado en el turno {{ p.stats.bankruptTurn }}</span>
               </td>
-              <td class="py-1.5 pr-2 text-right tabular-nums font-semibold">{{ fmt(Math.round(p.netWorth)) }}</td>
-              <td class="hidden py-1.5 pr-2 text-right tabular-nums sm:table-cell">{{ fmt(p.cash) }}</td>
+              <td class="py-1.5 pr-2 text-right tabular-nums font-semibold">{{ money(Math.round(p.netWorth)) }}</td>
+              <td class="hidden py-1.5 pr-2 text-right tabular-nums sm:table-cell">{{ money(p.cash) }}</td>
               <td class="py-1.5 pr-2 text-right tabular-nums">
                 {{ p.properties }}<span v-if="p.mortgaged" class="text-xs text-slate-400"> ({{ p.mortgaged }} hip.)</span>
               </td>
               <td class="hidden py-1.5 pr-2 sm:table-cell">{{ improvements(p) }}</td>
               <td class="hidden py-1.5 text-right tabular-nums md:table-cell">
-                {{ fmt(p.stats.rentReceived) }} / {{ fmt(p.stats.rentPaid) }}
+                {{ money(p.stats.rentReceived) }} / {{ money(p.stats.rentPaid) }}
               </td>
             </tr>
           </tbody>
@@ -95,7 +97,7 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
                 <span class="text-slate-500">{{ h.label }}: </span>
                 <strong> {{ s.players[h.playerId].name }}</strong>
               </span>
-              <span class="tabular-nums">{{ h.kind === 'money' ? fmt(h.value) : h.value }}</span>
+              <span class="tabular-nums">{{ h.kind === 'money' ? money(h.value) : h.value }}</span>
             </li>
           </ul>
         </section>

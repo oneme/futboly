@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { PLAYER_COLORS, fmt, playerTextColor, playerTint } from '../../lib/colors'
+import { PLAYER_COLORS, playerTextColor, playerTint } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import { isProperty } from '../../engine/game'
 import { AI_PROFILES } from '../../engine/aiProfiles'
 import PawnIcon from './PawnIcon.vue'
 import type { PropertySquare } from '../../engine/types'
 import PropertyChip from './PropertyChip.vue'
+
+const { money } = useMoney()
 
 const store = useMatchStore()
 const g = computed(() => store.state!)
@@ -43,7 +46,7 @@ const propertiesOf = (id: number) =>
           🔓 ×{{ p.jailCards.length }}
         </span>
         <span v-if="p.bankrupt" class="rounded bg-red-100 px-1.5 text-xs text-red-800">Quiebra</span>
-        <span class="ml-auto tabular-nums">{{ fmt(p.money) }}</span>
+        <span class="ml-auto tabular-nums">{{ money(p.money) }}</span>
         <button
           v-if="!p.bankrupt"
           class="rounded border border-slate-300 px-1.5 text-xs hover:bg-slate-50"

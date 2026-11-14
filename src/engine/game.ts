@@ -1,6 +1,7 @@
 import { buildBoard, loadCards } from './data'
 import type { AILevel } from './aiProfiles'
 import type { Card, DepartmentSquare, PropertySquare, Square, TradeOffer } from './types'
+import { money } from './money'
 
 export const START_MONEY = 150_000
 const BOARD_SIZE = 40
@@ -203,7 +204,6 @@ export function emit(s: GameState, type: GameEventType) {
   s.eventCount++
 }
 const die = (rng: () => number) => Math.floor(rng() * 6) + 1
-const money = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 function assertPhase(s: GameState, ...phases: Phase[]) {
   if (!phases.includes(s.phase)) throw new Error(`Acción no permitida en la fase "${s.phase}"`)

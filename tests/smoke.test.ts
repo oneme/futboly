@@ -10,6 +10,8 @@ import CardView from '../src/components/game/CardView.vue'
 import PropertyChip from '../src/components/game/PropertyChip.vue'
 import { buildBoard } from '../src/engine/data'
 import { readableText } from '../src/lib/teamColors'
+import { formatMoney, toEuros } from '../src/lib/currency'
+import { useSettingsStore } from '../src/stores/settings'
 import { readFileSync } from 'node:fs'
 import estadios from '../src/json/estadios.json'
 import { useMatchStore } from '../src/stores/match'
@@ -639,6 +641,104 @@ describe('GameView', () => {
       const selects = w.findAll('select')
       await selects[selects.length - 1].setValue(1)
       expect(w.find('.fixed').findAll('[data-chip]').some((c) => c.text().includes('El Molinón'))).toBe(true)
+    })
+  })
+
+  describe('importes en euros con inflación', () => {
+    const euros = { euros: true, inflation: 35.79 }
+    const setup = async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start(['Ana', 'Beto'])
+      await w.vm.$nextTick()
+      const clickText = async (text: string) =>
+        w.findAll('button').find((b) => b.text() === text)!.trigger('click')
+      return { w, store, clickText }
+    }
+
+    it('por defecto en pesetas; el selector del panel cambia dinero, tarjetas, registro y cartas', async () => {
+      const { w, store, clickText } = await setup()
+      expect(w.text()).toContain('150.000')
+      expect(w.find('[data-currency]').text()).toContain('Importes')
+
+      // genera una línea de registro con un importe: Ana compra Betis Tribuna (8.000)
+      const s = store.state!
+      s.players[0].position = 3
+      s.phase = 'buy'
+      store.buy()
+      await w.vm.$nextTick()
+      expect(w.text()).toContain('compra Benito Villamarín por 8.000.')
+
+      await clickText('€ con inflación')
+      expect(w.text()).toContain(formatMoney(142_000, euros)) // dinero de Ana tras comprar
+      expect(w.text()).not.toContain('150.000')
+      expect(w.text()).toContain(`compra Benito Villamarín por ${formatMoney(8_000, euros)}.`) // el registro se convierte
+      expect(w.text()).toContain('Importes') // y el aviso de las imágenes
+      expect(w.text()).toContain('siguen en pesetas')
+
+      // tarjeta de precios al pasar el ratón
+      const camp = w.findAll('[title="Camp Nou"]').find((e) => e.element.tagName === 'DIV')!.find('div')
+      await camp.trigger('mouseenter')
+      expect(w.text()).toContain(formatMoney(265_000, euros)) // alquiler con tribuna
+      expect(w.text()).not.toContain('265.000')
+      await camp.trigger('mouseleave')
+
+      // volver a pesetas
+      await clickText('Ptas.')
+      expect(w.text()).toContain('142.000')
+    })
+
+    it('el coeficiente de inflación es editable y se aplica al instante', async () => {
+      const { w, store, clickText } = await setup()
+      await clickText('€ con inflación')
+      const coef = w.find('[data-currency] input[type=number]')
+      await coef.setValue(0) // sin inflación: 150.000 ptas = 902 €
+      expect(w.text()).toContain(formatMoney(150_000, { euros: true, inflation: 0 }))
+      expect(toEuros(150_000, 0)).toBe(902)
+      expect(useSettingsStore().options).toEqual({ euros: true, inflation: 0 })
+      await coef.setValue('') // vacío: vuelve al coeficiente por defecto
+      expect(w.text()).toContain(formatMoney(150_000, euros))
+      expect(store.state!.players[0].money).toBe(150_000) // el motor sigue en pesetas
+    })
+
+    it('los textos de las cartas convierten sus importes', async () => {
+      const { w, store, clickText } = await setup()
+      await clickText('€ con inflación')
+      const s = store.state!
+      const card = s.decks.federation.find((c) => c.text.includes('20.000'))!
+      s.card = { deck: 'federation', card }
+      s.phase = 'card'
+      await w.vm.$nextTick()
+      expect(w.text()).toContain('€')
+      expect(w.text()).toContain(formatMoney(20_000, euros))
+    })
+
+    it('las cantidades escritas a mano siguen en pesetas y muestran su equivalente', async () => {
+      const { w, store, clickText } = await setup()
+      await clickText('€ con inflación')
+      const s = store.state!
+      s.players[0].position = 3
+      s.phase = 'buy'
+      store.declineBuy() // subasta
+      await w.vm.$nextTick()
+      const input = w.find('input[placeholder="Otra (Ptas.)"]')
+      await input.setValue(3_000)
+      expect(w.text()).toContain(`≈ ${formatMoney(3_000, euros)}`)
+      await w.findAll('button').find((b) => b.text() === 'Pujar')!.trigger('click')
+      expect(s.auction!.bid).toBe(3_000) // la puja se hace en pesetas
+    })
+
+    it('la pantalla de inicio permite elegir euros y el coeficiente', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      expect(w.text()).not.toContain('Coeficiente de inflación')
+      const box = w.findAll('label').find((l) => l.text().includes('en euros con inflación'))!.find('input')
+      await box.setValue(true)
+      expect(w.text()).toContain('Coeficiente de inflación')
+      expect(useSettingsStore().euros).toBe(true)
     })
   })
 })

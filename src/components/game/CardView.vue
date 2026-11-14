@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { useMoney } from '../../lib/useMoney'
+
 defineProps<{ deck: 'federation' | 'surprise'; text: string }>()
+// El texto de la carta dice "cobre 20.000": en modo euros se convierte el importe.
+const { convertText } = useMoney()
 </script>
 
 <template>
@@ -13,6 +17,6 @@ defineProps<{ deck: 'federation' | 'surprise'; text: string }>()
     >
       {{ deck === 'federation' ? 'Federación' : 'Sorpresa' }}
     </div>
-    <p class="text-sm leading-snug" :class="deck === 'federation' ? 'text-federation-ink' : 'text-surprise-ink'">{{ text }}</p>
+    <p class="text-sm leading-snug" :class="deck === 'federation' ? 'text-federation-ink' : 'text-surprise-ink'">{{ convertText(text) }}</p>
   </div>
 </template>

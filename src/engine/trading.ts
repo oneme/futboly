@@ -2,6 +2,7 @@ import { emit, isProperty, type GameState, type Player } from './game'
 import { AI_PROFILES, type AIProfile } from './aiProfiles'
 import { canTrade, trade } from './management'
 import type { PropertySquare, StadiumSquare, TradeOffer } from './types'
+import { money } from './money'
 
 /**
  * Intercambios con la máquina.
@@ -87,12 +88,11 @@ const sqName = (s: GameState, pos: number) => {
   const sq = s.board[pos] as PropertySquare
   return sq.kind === 'stadium' ? `${sq.name} (${sq.part === 'general' ? 'General' : 'Tribuna'})` : sq.name
 }
-const fmt = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 /** Texto legible de lo que entrega cada lado (para el registro y la ventana de propuesta). */
 export function describeSide(s: GameState, positions: number[], cash: number): string {
   const parts = positions.map((p) => sqName(s, p))
-  if (cash) parts.push(fmt(cash))
+  if (cash) parts.push(money(cash))
   return parts.length ? parts.join(', ') : 'nada'
 }
 
@@ -196,7 +196,7 @@ export function aiProposeTrade(s: GameState, p: Player, rng: () => number = Math
       const offer = offerFor(mult)
       if (!viable(offer)) break // ya le sale demasiado caro
       if (evaluateOffer(s, owner, offer)) {
-        s.log.push(`${p.name} ofrece ${fmt(offer.fromCash)} a ${target.name} por ${sqName(s, sq.position)}.`)
+        s.log.push(`${p.name} ofrece ${money(offer.fromCash)} a ${target.name} por ${sqName(s, sq.position)}.`)
         s.log.push(`${target.name} acepta la propuesta de ${p.name}.`)
         execute(s, offer)
         return true

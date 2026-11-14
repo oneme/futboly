@@ -3,10 +3,12 @@ import { computed } from 'vue'
 import { useMatchStore } from '../../stores/match'
 import { isProperty } from '../../engine/game'
 import { unmortgageCost } from '../../engine/management'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import { chairUrl, tribuneUrl } from '../../lib/assets'
 import type { PropertySquare, StadiumSquare } from '../../engine/types'
 import PropertyChip from './PropertyChip.vue'
+
+const { money } = useMoney()
 
 const props = defineProps<{ pid: number }>()
 const store = useMatchStore()
@@ -85,7 +87,7 @@ const reason = (r: string | null) => r ?? ''
               :title="reason(store.canBuildSeat(pid, sq.position))"
               @click="store.buildSeat(pid, sq.position)"
             >
-              <img v-if="chairUrl('bottom')" :src="chairUrl('bottom')" class="mr-1 inline h-4 w-auto" alt="" />+ Asiento ({{ fmt(sq.buildCost) }})
+              <img v-if="chairUrl('bottom')" :src="chairUrl('bottom')" class="mr-1 inline h-4 w-auto" alt="" />+ Asiento ({{ money(sq.buildCost) }})
             </button>
             <button
               :class="btn"
@@ -93,7 +95,7 @@ const reason = (r: string | null) => r ?? ''
               :title="reason(store.canBuildStand(pid, sq.position))"
               @click="store.buildStand(pid, sq.position)"
             >
-              <img v-if="tribuneUrl('bottom')" :src="tribuneUrl('bottom')" class="mr-1 inline h-4 w-auto" alt="" />+ Tribuna ({{ fmt(sq.buildCost) }})
+              <img v-if="tribuneUrl('bottom')" :src="tribuneUrl('bottom')" class="mr-1 inline h-4 w-auto" alt="" />+ Tribuna ({{ money(sq.buildCost) }})
             </button>
             <button
               :class="btn"
@@ -101,7 +103,7 @@ const reason = (r: string | null) => r ?? ''
               :title="reason(store.canSellSeat(pid, sq.position))"
               @click="store.sellSeat(pid, sq.position)"
             >
-              − Asiento (+{{ fmt(sq.buildCost / 2) }})
+              − Asiento (+{{ money(sq.buildCost / 2) }})
             </button>
             <button
               :class="btn"
@@ -109,7 +111,7 @@ const reason = (r: string | null) => r ?? ''
               :title="reason(store.canSellStands(pid, sq.position))"
               @click="store.sellStands(pid, sq.position)"
             >
-              Vender tribunas (+{{ fmt(standsSale(sq)) }})
+              Vender tribunas (+{{ money(standsSale(sq)) }})
             </button>
           </template>
 
@@ -120,7 +122,7 @@ const reason = (r: string | null) => r ?? ''
             :title="reason(store.canMortgage(pid, sq.position))"
             @click="store.mortgage(pid, sq.position)"
           >
-            Hipotecar (+{{ fmt(sq.mortgage) }})
+            Hipotecar (+{{ money(sq.mortgage) }})
           </button>
           <button
             v-else
@@ -129,7 +131,7 @@ const reason = (r: string | null) => r ?? ''
             :title="reason(store.canUnmortgage(pid, sq.position))"
             @click="store.unmortgage(pid, sq.position)"
           >
-            Levantar hipoteca (−{{ fmt(unmortgageCost(sq)) }})
+            Levantar hipoteca (−{{ money(unmortgageCost(sq)) }})
           </button>
         </div>
       </div>

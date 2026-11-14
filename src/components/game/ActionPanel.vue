@@ -2,10 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { useMatchStore } from '../../stores/match'
 import { isProperty } from '../../engine/game'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import PawnIcon from './PawnIcon.vue'
 import DiceView from './DiceView.vue'
 import CardView from './CardView.vue'
+
+const { money, euros } = useMoney()
 
 // Clases de Tailwind como constantes (evita @apply, que cambia entre Tailwind 3 y 4).
 const btn =
@@ -74,7 +76,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <PawnIcon :id="actor.id" :px="34" />
       {{ actor.name }}
       <span v-if="actor.ai" class="rounded bg-violet-100 px-1.5 text-xs font-medium text-violet-800">IA</span>
-      <span class="font-normal text-green-100">· {{ fmt(actor.money) }}</span>
+      <span class="font-normal text-green-100">· {{ money(actor.money) }}</span>
     </div>
     <p v-if="store.aiActing && !store.moving" class="text-sm italic text-green-100">pensando…</p>
     <p v-else-if="s.proposal" class="text-sm italic text-green-100">esperando tu respuesta a la propuesta…</p>
@@ -83,7 +85,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <DiceView :value="shownDice[1]" :px="56" :rolling="rolling" />
       <span v-if="!rolling" class="text-xl font-semibold">= {{ shownDice[0] + shownDice[1] }}</span>
     </div>
-    <div v-if="s.parkingPot > 0" class="text-sm text-green-100">Bote del Parking: {{ fmt(s.parkingPot) }}</div>
+    <div v-if="s.parkingPot > 0" class="text-sm text-green-100">Bote del Parking: {{ money(s.parkingPot) }}</div>
 
     <!-- Tirar -->
     <template v-if="s.phase === 'roll'">
@@ -91,7 +93,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
       <div class="flex flex-wrap justify-center gap-2">
         <button :class="btnPrimary" :disabled="rolling" @click="rollDice()">Tirar dados</button>
         <button v-if="p.inJail" :class="btn" :disabled="p.money < jailFine" @click="store.payJailFine()">
-          Pagar {{ fmt(jailFine) }}
+          Pagar {{ money(jailFine) }}
         </button>
         <button v-if="p.inJail && p.jailCards.length" :class="btn" @click="store.useJailCard()">
           Usar carta "Salga del Banquillo"
@@ -117,7 +119,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
     <!-- Comprar -->
     <template v-else-if="s.phase === 'buy'">
       <p>
-        <strong>{{ square.name }}</strong> está libre por <strong>{{ fmt(price) }}</strong>.
+        <strong>{{ square.name }}</strong> está libre por <strong>{{ money(price) }}</strong>.
       </p>
       <div class="flex gap-2">
         <button :class="btnPrimary" :disabled="p.money < price" @click="store.buy()">Comprar</button>
@@ -128,11 +130,11 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
     <!-- Subasta por pujas -->
     <template v-else-if="s.phase === 'auction' && auction && auctionSq && bidder">
       <p>
-        Subasta de <strong>{{ auctionSq.name }}</strong> <span class="text-green-100">(precio {{ fmt(auctionPrice) }})</span>
+        Subasta de <strong>{{ auctionSq.name }}</strong> <span class="text-green-100">(precio {{ money(auctionPrice) }})</span>
       </p>
       <p>
         Puja actual:
-        <strong>{{ auction.bid ? fmt(auction.bid) : 'ninguna' }}</strong>
+        <strong>{{ auction.bid ? money(auction.bid) : 'ninguna' }}</strong>
         <template v-if="leader"> · {{ leader.name }}</template>
       </p>
       <div class="flex flex-wrap justify-center gap-2">
@@ -143,11 +145,12 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
           :disabled="auction.bid + inc > bidder.money"
           @click="store.auctionBid(auction.bid + inc)"
         >
-          +{{ fmt(inc) }} ({{ fmt(auction.bid + inc) }})
+          +{{ money(inc) }} ({{ money(auction.bid + inc) }})
         </button>
       </div>
       <div class="flex flex-wrap items-center justify-center gap-2">
-        <input v-model.number="custom" type="number" min="0" step="500" placeholder="Otra cantidad" :class="[field, 'w-32']" />
+        <input v-model.number="custom" type="number" min="0" step="500" placeholder="Otra (Ptas.)" :class="[field, 'w-32']" />
+        <span v-if="euros && custom > 0" class="text-sm text-green-100">≈ {{ money(custom) }}</span>
         <button :class="btnPrimary" :disabled="!canCustom" @click="store.auctionBid(custom)">Pujar</button>
         <button :class="btn" @click="store.auctionPass()">Retirarse</button>
       </div>
@@ -156,7 +159,7 @@ const canSettle = computed(() => !!s.value.debt && !!debtor.value && debtor.valu
     <!-- Deuda -->
     <template v-else-if="s.phase === 'debt' && s.debt && debtor">
       <p>
-        <strong>{{ debtor.name }}</strong> debe {{ fmt(s.debt.amount) }} y tiene {{ fmt(debtor.money) }}.
+        <strong>{{ debtor.name }}</strong> debe {{ money(s.debt.amount) }} y tiene {{ money(debtor.money) }}.
       </p>
       <p class="text-sm text-green-100">Puede vender mejoras o hipotecar antes de pagar.</p>
       <div class="flex flex-wrap justify-center gap-2">

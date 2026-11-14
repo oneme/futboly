@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import PropertiesTab from './PropertiesTab.vue'
 import TradeTab from './TradeTab.vue'
 import PawnIcon from './PawnIcon.vue'
+
+const { money } = useMoney()
 
 const store = useMatchStore()
 const tab = ref<'props' | 'trade'>('props')
@@ -30,9 +32,9 @@ const tabClass = (t: string) =>
         <select v-model="store.managing" class="rounded-md border border-slate-300 px-2 py-1 font-semibold">
           <option v-for="p in alive" :key="p.id" :value="p.id">{{ p.name }}</option>
         </select>
-        <span class="tabular-nums text-slate-700">{{ fmt(player.money) }}</span>
+        <span class="tabular-nums text-slate-700">{{ money(player.money) }}</span>
         <span v-if="store.state!.debt" class="rounded bg-red-100 px-2 py-0.5 text-xs text-red-800">
-          Deuda pendiente: {{ fmt(store.state!.debt.amount) }}
+          Deuda pendiente: {{ money(store.state!.debt.amount) }}
         </span>
         <button class="ml-auto rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100" @click="store.closeManager()">
           ✕

@@ -5,7 +5,9 @@ import { isProperty } from '../../engine/game'
 import type { TradeOffer } from '../../engine/management'
 import type { PropertySquare } from '../../engine/types'
 import PropertyChip from './PropertyChip.vue'
-import { fmt } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
+
+const { money, euros } = useMoney()
 
 const props = defineProps<{ pid: number }>()
 const store = useMatchStore()
@@ -99,7 +101,7 @@ function sellCard() {
         <label class="text-sm font-medium">Intercambiar con</label>
         <select v-model="to" :class="field">
           <option :value="null" disabled>Jugador…</option>
-          <option v-for="q in others" :key="q.id" :value="q.id">{{ q.name }} ({{ fmt(q.money) }})</option>
+          <option v-for="q in others" :key="q.id" :value="q.id">{{ q.name }} ({{ money(q.money) }})</option>
         </select>
       </div>
 
@@ -112,7 +114,8 @@ function sellCard() {
           </label>
           <p v-if="!ownedBy(pid).length" class="text-xs text-slate-500">Sin concesiones.</p>
           <label class="mt-2 flex items-center gap-2 text-sm">
-            Dinero <input v-model.number="myCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
+            Dinero (Ptas.) <input v-model.number="myCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
+            <span v-if="euros && myCash > 0" class="text-xs text-slate-500">≈ {{ money(myCash) }}</span>
           </label>
         </div>
 
@@ -124,7 +127,8 @@ function sellCard() {
           </label>
           <p v-if="!ownedBy(to).length" class="text-xs text-slate-500">Sin concesiones.</p>
           <label class="mt-2 flex items-center gap-2 text-sm">
-            Dinero <input v-model.number="theirCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
+            Dinero (Ptas.) <input v-model.number="theirCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
+            <span v-if="euros && theirCash > 0" class="text-xs text-slate-500">≈ {{ money(theirCash) }}</span>
           </label>
         </div>
       </div>
@@ -144,7 +148,7 @@ function sellCard() {
       <div class="flex flex-wrap items-center gap-2">
         <select v-model="cardBuyer" :class="field">
           <option :value="null" disabled>Comprador…</option>
-          <option v-for="q in others" :key="q.id" :value="q.id">{{ q.name }} ({{ fmt(q.money) }})</option>
+          <option v-for="q in others" :key="q.id" :value="q.id">{{ q.name }} ({{ money(q.money) }})</option>
         </select>
         <input v-model.number="cardPrice" type="number" min="0" step="500" :class="[field, 'w-28']" />
         <button :class="btnPrimary" :disabled="!!cardError" @click="sellCard">Vender</button>

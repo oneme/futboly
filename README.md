@@ -86,3 +86,15 @@ npm test                # pruebas de interfaz (vitest + jsdom)
 - **Resumen** (`src/engine/summary.ts`, `GameOverDialog.vue`): clasificación por patrimonio (manera rápida del manual),
   eliminados ordenados por quién aguantó más, datos curiosos y botón de **Revancha** con los mismos jugadores y reglas.
 - **Colores de las cartas** (`main.css`): Federación en verde y Sorpresa en morado, borde oscuro y fondo claro.
+
+### Importes en euros con inflación
+
+El motor trabaja siempre en pesetas; la interfaz puede mostrar los importes en euros con la fórmula del `utils.ts` original:
+`euros = ceil(pesetas / 166,386 · (1 + coeficiente))`, con coeficiente 35,79 por defecto (editable).
+
+- Se elige en la pantalla de inicio o con el selector "Importes" del panel lateral, y se guarda en el navegador
+  (`src/stores/settings.ts`). Cambia el dinero de los jugadores, las tarjetas de precios, las pujas, las cartas y el registro.
+- El registro lo escribe el motor con marcadores (`[[6000]]`, `src/engine/money.ts`) para poder cambiar de moneda
+  también en las líneas ya escritas (`src/lib/currency.ts`).
+- Las cantidades que se escriben a mano (pujas, intercambios) siguen siendo en pesetas y muestran su equivalente.
+- Las cifras impresas en las imágenes de las casillas no se pueden convertir y siguen en pesetas.
