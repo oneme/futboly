@@ -36,6 +36,7 @@ export interface StadiumSquare extends SquareBase {
   kind: 'stadium'
   id: number
   team: string
+  short: string
   part: 'general' | 'tribuna'
   price: number
   mortgage: number

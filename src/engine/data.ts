@@ -46,6 +46,7 @@ export function buildBoard(): Square[] {
       id: s.id,
       name: s.name,
       team: s.team,
+      short: s.short,
       part: s.type === 0 ? 'general' : 'tribuna',
       price: s.price,
       mortgage: s.mortgage,
