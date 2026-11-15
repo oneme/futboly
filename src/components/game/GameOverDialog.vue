@@ -24,7 +24,7 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
 <template>
   <div
     v-if="store.summaryOpen && s.phase === 'gameOver'"
-    class="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 p-4"
+    class="fixed inset-0 z-70 flex items-center justify-center bg-black/55 p-4"
     data-gameover
   >
     <div class="flex max-h-[92vh] w-full max-w-3xl flex-col rounded-xl bg-white shadow-2xl">
@@ -92,7 +92,7 @@ const btnPrimary = 'rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold 
             <li v-for="h in summary.highlights" :key="h.label" class="flex items-center gap-2 rounded bg-slate-50 px-2 py-1">
               <PawnIcon :id="h.playerId" :px="22" />
               <span class="flex-1">
-                <span class="text-slate-500">{{ h.label }}:</span>
+                <span class="text-slate-500">{{ h.label }}: </span>
                 <strong> {{ s.players[h.playerId].name }}</strong>
               </span>
               <span class="tabular-nums">{{ h.kind === 'money' ? fmt(h.value) : h.value }}</span>

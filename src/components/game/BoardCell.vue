@@ -40,7 +40,7 @@ const flipped = computed(() => cell.value.side === 'top')
 <template>
   <div class="relative z-10" :title="sq.name">
     <div
-      class="absolute overflow-hidden bg-white"
+      class="absolute overflow-hidden"
       :style="imgBox"
       @mouseenter="isProperty(sq) && emit('hover', sq.position)"
       @mouseleave="emit('hover', null)"

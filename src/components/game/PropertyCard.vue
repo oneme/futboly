@@ -27,7 +27,7 @@ const detail = computed(() => {
 </script>
 
 <template>
-  <div class="w-[300px] text-sm shadow-2xl">
+  <div class="w-75 text-sm shadow-2xl">
     <!-- Estadio (General / Tribuna) -->
     <div v-if="sq.kind === 'stadium'" class="rounded-sm bg-orange-200 p-2">
       <div class="flex flex-col border border-black p-1">

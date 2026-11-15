@@ -89,20 +89,20 @@ const centerStyle = computed(() => {
 
       <!-- Centro del tablero: mazos de cartas -->
       <div class="relative z-0" style="grid-column: 2 / 13; grid-row: 2 / 9">
-        <div class="absolute left-8 top-1/2 h-[200px] w-[122px] -translate-y-1/2">
+        <div class="absolute left-8 top-1/2 h-50 w-30.5 -translate-y-1/2">
           <img
             v-if="imageUrl('src/assets/departments/card_surprise.webp')"
             :src="imageUrl('src/assets/departments/card_surprise.webp')"
             alt="Mazo Sorpresa"
-            class="absolute left-1/2 top-1/2 w-[200px] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 border-4 border-dotted border-white"
+            class="absolute left-1/2 top-1/2 w-50 max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 border-4 border-dotted border-white"
           />
         </div>
-        <div class="absolute right-8 top-1/2 h-[200px] w-[122px] -translate-y-1/2">
+        <div class="absolute right-8 top-1/2 h-50 w-30.5 -translate-y-1/2">
           <img
             v-if="imageUrl('src/assets/departments/card_federation.webp')"
             :src="imageUrl('src/assets/departments/card_federation.webp')"
             alt="Mazo Federación"
-            class="absolute left-1/2 top-1/2 w-[200px] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 border-4 border-dotted border-white"
+            class="absolute left-1/2 top-1/2 w-50 max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 border-4 border-dotted border-white"
           />
         </div>
       </div>

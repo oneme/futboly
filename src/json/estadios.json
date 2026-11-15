@@ -3,6 +3,7 @@
     "id": 1,
     "name": "Benito Villamarín",
     "team": "Real Betis",
+    "short": "Betis",
     "rents": [
       {"title": "zona sin asientos", "rent": 200},
       {"title": "con 1 silla", "rent": 1000},
@@ -26,6 +27,7 @@
     "id": 2,
     "name": "Benito Villamarín",
     "team": "Real Betis",
+    "short": "Betis",
     "rents": [
       {"title": "zona sin asientos", "rent": 500},
       {"title": "con 1 silla", "rent": 2200},
@@ -49,6 +51,7 @@
     "id": 4,
     "name": "El Molinón",
     "team": "Sporting Gijón",
+    "short": "Gijón",
     "rents": [
       {"title": "zona sin asientos", "rent": 800},
       {"title": "con 1 silla", "rent": 3400},
@@ -72,6 +75,7 @@
     "id": 5,
     "name": "El Molinón",
     "team": "Sporting Gijón",
+    "short": "Gijón",
     "rents": [
       {"title": "zona sin asientos", "rent": 1100},
       {"title": "con 1 silla", "rent": 4600},
@@ -95,6 +99,7 @@
     "id": 6,
     "name": "La Romareda",
     "team": "Real Zaragoza",
+    "short": "Zaragoza",
     "rents": [
       {"title": "zona sin asientos", "rent": 1400},
       {"title": "con 1 silla", "rent": 5000},
@@ -118,6 +123,7 @@
     "id": 7,
     "name": "La Romareda",
     "team": "Real Zaragoza",
+    "short": "Zaragoza",
     "rents": [
       {"title": "zona sin asientos", "rent": 1700},
       {"title": "con 1 silla", "rent": 7000},
@@ -141,6 +147,7 @@
     "id": 9,
     "name": "San Mames",
     "team": "Ath. Bilbao",
+    "short": "At. Bilbao",
     "rents": [
       {"title": "zona sin asientos", "rent": 2000},
       {"title": "con 1 silla", "rent": 8200},
@@ -164,6 +171,7 @@
     "id": 10,
     "name": "San Mames",
     "team": "Ath. Bilbao",
+    "short": "At. Bilbao",
     "rents": [
       {"title": "zona sin asientos", "rent": 2300},
       {"title": "con 1 silla", "rent": 9400},
@@ -187,6 +195,7 @@
     "id": 12,
     "name": "Sánchez Pizjuan",
     "team": "Sevilla F.C.",
+    "short": "Sevilla",
     "rents": [
       {"title": "zona sin asientos", "rent": 2600},
       {"title": "con 1 silla", "rent": 10600},
@@ -199,7 +208,7 @@
     "build": 10000,
     "price": 22000,
     "type": 0,
-    "path": "src/assets/stadiums/sanchezPizJuanGeneral.webp",
+    "path": "src/assets/stadiums/sanchezPizjuanGeneral.webp",
     "colors": {
       "top": "bg-red-1100",
       "bottom": "",
@@ -210,6 +219,7 @@
     "id": 13,
     "name": "Sánchez Pizjuan",
     "team": "Sevilla F.C.",
+    "short": "Sevilla",
     "rents": [
       {"title": "zona sin asientos", "rent": 2900},
       {"title": "con 1 silla", "rent": 11800},
@@ -222,7 +232,7 @@
     "build": 10000,
     "price": 24000,
     "type": 1,
-    "path": "src/assets/stadiums/sanchezPizJuanTribuna.webp",
+    "path": "src/assets/stadiums/sanchezPizjuanTribuna.webp",
     "colors": {
       "top": "bg-red-1100",
       "bottom": "",
@@ -233,6 +243,7 @@
     "id": 14,
     "name": "Vicente Calderón",
     "team": "At. Madrid",
+    "short": "At. Madrid",
     "rents": [
       {"title": "zona sin asientos", "rent": 3200},
       {"title": "con 1 silla", "rent": 13000},
@@ -256,6 +267,7 @@
     "id": 15,
     "name": "Vicente Calderón",
     "team": "At. Madrid",
+    "short": "At. Madrid",
     "rents": [
       {"title": "zona sin asientos", "rent": 3500},
       {"title": "con 1 silla", "rent": 14200},
@@ -279,6 +291,7 @@
     "id": 16,
     "name": "Sarría",
     "team": "R.C.D Español",
+    "short": "Español",
     "rents": [
       {"title": "zona sin asientos", "rent": 3800},
       {"title": "con 1 silla", "rent": 15400},
@@ -302,6 +315,7 @@
     "id": 17,
     "name": "Sarría",
     "team": "R.C.D Español",
+    "short": "Español",
     "rents": [
       {"title": "zona sin asientos", "rent": 4100},
       {"title": "con 1 silla", "rent": 16600},
@@ -325,6 +339,7 @@
     "id": 19,
     "name": "Luis Casanova",
     "team": "Valencia C.F.",
+    "short": "Valencia",
     "rents": [
       {"title": "zona sin asientos", "rent": 4400},
       {"title": "con 1 silla", "rent": 17800},
@@ -348,6 +363,7 @@
     "id": 20,
     "name": "Luis Casanova",
     "team": "Valencia C.F.",
+    "short": "Valencia",
     "rents": [
       {"title": "zona sin asientos", "rent": 4700},
       {"title": "con 1 silla", "rent": 19000},
@@ -371,6 +387,7 @@
     "id": 22,
     "name": "Atocha",
     "team": "Real Sociedad",
+    "short": "R. Sociedad",
     "rents": [
       {"title": "zona sin asientos", "rent": 5000},
       {"title": "con 1 silla", "rent": 20200},
@@ -394,6 +411,7 @@
     "id": 23,
     "name": "Atocha",
     "team": "Real Sociedad",
+    "short": "R. Sociedad",
     "rents": [
       {"title": "zona sin asientos", "rent": 5300},
       {"title": "con 1 silla", "rent": 21400},
@@ -417,6 +435,7 @@
     "id": 24,
     "name": "Santiago Bernabeu",
     "team": "Real Madrid",
+    "short": "R. Madrid",
     "rents": [
       {"title": "zona sin asientos", "rent": 5600},
       {"title": "con 1 silla", "rent": 22600},
@@ -440,6 +459,7 @@
     "id": 25,
     "name": "Santiago Bernabeu",
     "team": "Real Madrid",
+    "short": "R. Madrid",
     "rents": [
       {"title": "zona sin asientos", "rent": 5900},
       {"title": "con 1 silla", "rent": 23800},
@@ -463,6 +483,7 @@
     "id": 27,
     "name": "Camp Nou",
     "team": "F.C. Barcelona",
+    "short": "Barcelona",
     "rents": [
       {"title": "zona sin asientos", "rent": 6200},
       {"title": "con 1 silla", "rent": 25000},
@@ -486,6 +507,7 @@
     "id": 28,
     "name": "Camp Nou",
     "team": "F.C. Barcelona",
+    "short": "Barcelona",
     "rents": [
       {"title": "zona sin asientos", "rent": 6500},
       {"title": "con 1 silla", "rent": 26200},

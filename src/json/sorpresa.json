@@ -56,7 +56,7 @@
     "text" : "Vaya a 'Sarría' tribuna. Si pasa por la casilla de salida cobre 20.000",
     "action": {
         "method": "move",
-        "args": [24]
+        "args": [25]
     }
 },{
     "text" : "Vaya a Servicios de estadio 'Gorras'. Si pasa por la casilla de salida cobre 20.000",
