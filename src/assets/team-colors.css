@@ -1,0 +1,3 @@
+/* GENERADO por scripts/team-colors.mjs a partir de src/json/estadios*.json. No editar a mano.
+   Los colores de equipo vienen como clases unidas por comas ("bg-sky-1100,bg-white"), que Tailwind no detecta solo. */
+@source inline("bg-black bg-blue-800 bg-green-1000 bg-purple-1000 bg-red-1000 bg-red-1100 bg-red-600 bg-sky-1000 bg-sky-1100 bg-sky-1200 bg-sky-500 bg-sky-800 bg-white bg-yellow-400 text-black text-white");

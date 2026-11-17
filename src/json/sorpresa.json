@@ -23,7 +23,7 @@
         "args": [0]
     }
 },{
-    "text" : "Vaya al 'Cam Nou' tribuna y aténgase a las consecuencias.",
+    "text" : "Vaya al 'Camp Nou' tribuna y aténgase a las consecuencias.",
     "action": {
         "method": "move",
         "args": [40]

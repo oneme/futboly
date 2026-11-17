@@ -98,3 +98,28 @@ El motor trabaja siempre en pesetas; la interfaz puede mostrar los importes en e
   también en las líneas ya escritas (`src/lib/currency.ts`).
 - Las cantidades que se escriben a mano (pujas, intercambios) siguen siendo en pesetas y muestran su equivalente.
 - Las cifras impresas en las imágenes de las casillas no se pueden convertir y siguen en pesetas.
+
+### Datos y ediciones (`src/json/`)
+
+El tablero y los equipos salen de los JSON; el motor y la interfaz no tienen ningún nombre de equipo en el código.
+
+| Archivo | Contenido |
+|---|---|
+| `estadios.json` / `estadios_new.json` | Equipos y estadios: `team`, `short` (nombre corto de la casilla), `name` (estadio), `type` (0 General, 1 Tribuna), precios, alquileres, hipoteca, `build` y `colors` |
+| `federacion*.json`, `sorpresa*.json` | Cartas; los `move` usan posiciones 1 a 40 (0 = Salida) |
+| `concesiones.json`, `servicios.json`, `departamentos.json` | Servicios de estadio, de club y casillas especiales |
+| `board-layout.json` | Orden de las 40 casillas (`P<id>` concesión, `D<n>` departamento) |
+
+`colors` de un estadio: `top` son las clases de las franjas (`"bg-green-1000,bg-white"`), `style` el dibujo (4 o más = ese
+número de franjas alternas, 2-3 = tres barras sobre blanco, 1 = liso) y `bottom` la banda inferior y el color del texto.
+`path` es opcional: sin imagen, la casilla se construye desde el JSON.
+
+```sh
+npm run validate-data   # revisa las dos ediciones (parejas General/Tribuna, alquileres, hipotecas, cartas y sus destinos...)
+npm run team-colors     # regenera src/assets/team-colors.css (se ejecuta solo antes de dev y build-only)
+```
+
+**Añadir o cambiar un equipo**: editar las dos entradas del equipo en `estadios.json` (General y Tribuna, mismo `team`, `short`
+y `colors`), ajustar el texto de las cartas que lo mencionen y ejecutar `npm run validate-data`. Las clases de color nuevas
+se detectan solas. **Cambiar de edición**: sustituir `estadios.json`, `federacion.json` y `sorpresa.json` por las `_new`
+y ejecutar `npm run team-colors`.

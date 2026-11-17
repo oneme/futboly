@@ -10,8 +10,9 @@ import CardView from '../src/components/game/CardView.vue'
 import PropertyChip from '../src/components/game/PropertyChip.vue'
 import { buildBoard } from '../src/engine/data'
 import { readableText } from '../src/lib/teamColors'
-import { formatMoney, toEuros } from '../src/lib/currency'
+import { formatMoney, formatNumber, toEuros } from '../src/lib/currency'
 import { useSettingsStore } from '../src/stores/settings'
+import { byId, posOf, stadium, stadiumWhere, stripeClasses } from './data'
 import { readFileSync } from 'node:fs'
 import estadios from '../src/json/estadios.json'
 import { useMatchStore } from '../src/stores/match'
@@ -151,25 +152,25 @@ describe('GameView', () => {
     const imgBox = (title: string) => w.findAll(`[title="${title}"]`).find((e) => e.element.tagName === 'DIV')!.find('div')
 
     // Estadio: título de propiedad con alquileres, precio de compra e hipoteca
-    const camp = imgBox('Camp Nou')
+    const camp = imgBox(stadium(27).name)
     await camp.trigger('mouseenter')
     expect(w.text()).toContain('título de propiedad')
-    expect(w.text()).toContain('265.000') // alquiler con tribuna (formato con punto)
+    expect(w.text()).toContain(formatNumber(stadium(27).rents[5])) // alquiler con tribuna (formato con punto)
     expect(w.text()).toContain('valor hipotecario')
     expect(w.text()).toContain('Libre')
     await camp.trigger('mouseleave')
     expect(w.text()).not.toContain('título de propiedad')
 
     // Servicio de estadio y de club
-    await imgBox('Almohadillas').trigger('mouseenter')
+    await imgBox(byId(3).name).trigger('mouseenter')
     expect(w.text()).toContain('servicios estadio')
-    expect(w.text()).toContain('2.500')
-    await imgBox('Autocares').trigger('mouseenter')
+    expect(w.text()).toContain(formatNumber((byId(3) as never as { rentByOwned: number[] }).rentByOwned[0]))
+    await imgBox(byId(21).name).trigger('mouseenter')
     expect(w.text()).toContain('Valor de los dados')
 
     // Con propietario y mejoras
     const store = useMatchStore()
-    const pos = store.state!.board.findIndex((x) => x.kind === 'stadium' && x.name === 'Camp Nou')
+    const pos = posOf(27)
     store.state!.properties[pos].owner = 1
     store.state!.properties[pos].seats = 2
     await camp.trigger('mouseenter')
@@ -295,7 +296,7 @@ describe('GameView', () => {
       await vi.advanceTimersByTimeAsync(3_000)
       expect(s.proposal).toBeTruthy()
       expect(w.text()).toContain('Robot te propone un trato')
-      expect(w.text()).toContain('Villamarín') // describe lo que se intercambia
+      expect(w.text()).toContain(stadium(1).name) // describe lo que se intercambia
       expect(w.find('[data-chip]').exists()).toBe(true) // con píldoras de colores
       expect(s.phase).toBe('roll') // el Robot espera, no tira
 
@@ -315,7 +316,7 @@ describe('GameView', () => {
       const store = useMatchStore()
       store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
       const s = store.state!
-      const gorras = s.board.findIndex((x) => x.kind === 'stadiumService' && x.name === 'Gorras')
+      const gorras = s.board.findIndex((x) => x.kind === 'stadiumService' && x.name === byId(11).name)
       s.properties[gorras].owner = 1
       store.openManager(0)
       await w.vm.$nextTick()
@@ -323,7 +324,7 @@ describe('GameView', () => {
       const selects = w.findAll('select')
       await selects[selects.length - 1].setValue(1) // intercambiar con el Robot
       expect(w.text()).toContain('La IA valorará la oferta')
-      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes('Gorras'))!.setValue(true)
+      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes(byId(11).name))!.setValue(true)
       const cash = w.findAll('input[type=number]')[0]
       await cash.setValue(5_000) // oferta tacaña
       const propose = () => w.findAll('button').find((b) => b.text().includes('Proponer a la IA'))!
@@ -332,7 +333,7 @@ describe('GameView', () => {
       expect(s.properties[gorras].owner).toBe(1)
 
       await selects[selects.length - 1].setValue(1)
-      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes('Gorras'))!.setValue(true)
+      await w.findAll('input[type=checkbox]').find((b) => b.element.parentElement!.textContent!.includes(byId(11).name))!.setValue(true)
       await w.findAll('input[type=number]')[0].setValue(40_000) // oferta generosa
       await propose().trigger('click')
       expect(w.text()).toContain('acepta el trato')
@@ -551,36 +552,37 @@ describe('GameView', () => {
   })
 
   describe('píldoras con los colores del equipo', () => {
-    const board = buildBoard()
-    const byId = (id: number) => board.find((x) => 'id' in x && x.id === id) as never
     const chip = (id: number, extra: Record<string, unknown> = {}) =>
       mount(PropertyChip, { props: { sq: byId(id), ...extra } })
+    const bottomOf = (id: number) => stadium(id).colors.bottom.trim()
 
-    it('estadio con dos franjas y parte inferior blanca (Betis)', () => {
-      const w = chip(1) // Benito Villamarín (General): top "bg-green-1000,bg-white", bottom "bg-white"
-      expect(w.findAll('[data-stripes] i').map((i) => i.classes())).toEqual([['block', 'min-w-0', 'flex-1', 'bg-green-1000'], ['block', 'min-w-0', 'flex-1', 'bg-white']])
+    it('estadio: una franja por cada color de la parte superior y el nombre sobre la inferior', () => {
+      const w = chip(1)
+      const stripes = stripeClasses(1)
+      expect(w.findAll('[data-stripes] i').map((i) => i.classes().at(-1))).toEqual(stripes)
       const label = w.find('[data-label]')
-      expect(label.classes()).toEqual(expect.arrayContaining(['bg-white', 'text-black']))
-      expect(label.text()).toBe('Benito Villamarín (G)')
-      expect(chip(2).find('[data-label]').text()).toBe('Benito Villamarín (T)')
+      const bottom = bottomOf(1) || 'bg-white'
+      for (const c of bottom.split(/\s+/)) expect(label.classes()).toContain(c)
+      expect(label.text()).toBe(`${stadium(1).name} (G)`)
+      expect(chip(2).find('[data-label]').text()).toBe(`${stadium(2).name} (T)`)
     })
 
-    it('si la parte inferior ya trae color de texto no se le añade otro (Sporting)', () => {
-      const label = chip(4).find('[data-label]') // bottom "bg-sky-1200 text-white"
-      expect(label.classes()).toEqual(expect.arrayContaining(['bg-sky-1200', 'text-white']))
+    const withText = stadiumWhere((c) => /(^|\s)text-/.test(c.bottom))
+    it.skipIf(!withText)('si la parte inferior ya trae color de texto no se le añade otro', () => {
+      const label = chip(withText!.id).find('[data-label]')
+      for (const c of withText!.colors.bottom.trim().split(/\s+/)) expect(label.classes()).toContain(c)
       expect(label.classes()).not.toContain('text-black')
     })
 
-    it('equipos de barras (parte inferior vacía): fondo blanco y texto negro (Sevilla)', () => {
-      const w = chip(12)
-      expect(w.findAll('[data-stripes] i').length).toBe(1)
-      expect(w.find('[data-stripes] i').classes()).toContain('bg-red-1100')
+    const emptyBottom = stadiumWhere((c) => !c.bottom.trim())
+    it.skipIf(!emptyBottom)('parte inferior vacía: fondo blanco y texto negro', () => {
+      const w = chip(emptyBottom!.id)
       expect(w.find('[data-label]').classes()).toEqual(expect.arrayContaining(['bg-white', 'text-black']))
     })
 
     it('servicios: color propio con texto legible; hipotecada se tacha y se atenúa', () => {
       const gorras = chip(11)
-      expect(gorras.text()).toBe('Gorras')
+      expect(gorras.text()).toBe(byId(11).name)
       expect((gorras.find('[data-label]').element as HTMLElement).style.backgroundColor).toBe('rgb(33, 150, 209)')
       const hip = chip(11, { mortgaged: true })
       expect(hip.find('[data-label]').classes()).toContain('line-through')
@@ -592,14 +594,6 @@ describe('GameView', () => {
       expect(readableText('#e4bc47')).toBe('#000000')
     })
 
-    it('Tailwind genera todas las clases de color de estadios.json (lista segura en main.css)', () => {
-      const css = readFileSync('src/assets/main.css', 'utf-8')
-      const safelist = css.match(/@source inline\("([^"]+)"\)/)![1].split(/\s+/)
-      const used = new Set<string>()
-      for (const e of estadios) for (const k of ['top', 'bottom'] as const) for (const c of e.colors[k].split(/[,\s]+/)) if (c) used.add(c)
-      expect([...used].filter((c) => !safelist.includes(c))).toEqual([])
-    })
-
     it('el panel de jugadores muestra las propiedades con los colores del equipo', async () => {
       const pinia = createPinia()
       setActivePinia(pinia)
@@ -607,13 +601,13 @@ describe('GameView', () => {
       const store = useMatchStore()
       store.start(['Ana', 'Beto'])
       const s = store.state!
-      s.properties[1].owner = 0 // Betis General
-      s.properties[board.findIndex((x) => 'id' in x && x.id === 11)].owner = 0 // Gorras
+      s.properties[posOf(1)].owner = 0
+      s.properties[posOf(11)].owner = 0 // un servicio
       await w.vm.$nextTick()
-      const card = w.findAll('[data-chip]').filter((c) => c.text().includes('Villamarín'))
+      const card = w.findAll('[data-chip]').filter((c) => c.text().includes(stadium(1).name))
       expect(card.length).toBe(1)
-      expect(card[0].find('[data-stripes] i').classes()).toContain('bg-green-1000')
-      expect(w.findAll('[data-chip]').some((c) => c.text() === 'Gorras')).toBe(true)
+      expect(card[0].find('[data-stripes] i').classes()).toContain(stripeClasses(1)[0])
+      expect(w.findAll('[data-chip]').some((c) => c.text() === byId(11).name)).toBe(true)
     })
 
     it('el gestor: banner del equipo y píldoras General/Tribuna; los intercambios también las usan', async () => {
@@ -623,24 +617,24 @@ describe('GameView', () => {
       const store = useMatchStore()
       store.start(['Ana', 'Beto'])
       const s = store.state!
-      s.properties[1].owner = 0
-      s.properties[3].owner = 0
-      s.properties[board.findIndex((x) => 'id' in x && x.id === 4)].owner = 1 // Molinón General (de Beto)
+      s.properties[posOf(1)].owner = 0
+      s.properties[posOf(2)].owner = 0
+      s.properties[posOf(4)].owner = 1 // General del segundo equipo (de Beto)
       store.openManager(0)
       await w.vm.$nextTick()
       const dialog = w.find('.fixed')
       const chips = dialog.findAll('[data-chip]')
       const texts = chips.map((c) => c.text())
-      expect(texts).toContain('Real Betis · Benito Villamarín') // banner del grupo
+      const banner = `${stadium(1).team} · ${stadium(1).name}`
+      expect(texts).toContain(banner) // banner del grupo
       expect(texts).toContain('General')
       expect(texts).toContain('Tribuna')
-      const banner = chips.find((c) => c.text().startsWith('Real Betis'))!
-      expect(banner.find('[data-stripes] i').classes()).toContain('bg-green-1000')
+      expect(chips.find((c) => c.text() === banner)!.find('[data-stripes] i').classes()).toContain(stripeClasses(1)[0])
 
       await w.findAll('button').find((b) => b.text().includes('Intercambios'))!.trigger('click')
       const selects = w.findAll('select')
       await selects[selects.length - 1].setValue(1)
-      expect(w.find('.fixed').findAll('[data-chip]').some((c) => c.text().includes('El Molinón'))).toBe(true)
+      expect(w.find('.fixed').findAll('[data-chip]').some((c) => c.text().includes(stadium(4).name))).toBe(true)
     })
   })
 
@@ -669,20 +663,20 @@ describe('GameView', () => {
       s.phase = 'buy'
       store.buy()
       await w.vm.$nextTick()
-      expect(w.text()).toContain('compra Benito Villamarín por 8.000.')
+      expect(w.text()).toContain(`compra ${stadium(2).name} por ${formatNumber(stadium(2).price)}.`)
 
       await clickText('€ con inflación')
       expect(w.text()).toContain(formatMoney(142_000, euros)) // dinero de Ana tras comprar
       expect(w.text()).not.toContain('150.000')
-      expect(w.text()).toContain(`compra Benito Villamarín por ${formatMoney(8_000, euros)}.`) // el registro se convierte
+      expect(w.text()).toContain(`compra ${stadium(2).name} por ${formatMoney(stadium(2).price, euros)}.`) // el registro se convierte
       expect(w.text()).toContain('Importes') // y el aviso de las imágenes
       expect(w.text()).toContain('siguen en pesetas')
 
       // tarjeta de precios al pasar el ratón
-      const camp = w.findAll('[title="Camp Nou"]').find((e) => e.element.tagName === 'DIV')!.find('div')
+      const camp = w.findAll(`[title="${stadium(27).name}"]`).find((e) => e.element.tagName === 'DIV')!.find('div')
       await camp.trigger('mouseenter')
-      expect(w.text()).toContain(formatMoney(265_000, euros)) // alquiler con tribuna
-      expect(w.text()).not.toContain('265.000')
+      expect(w.text()).toContain(formatMoney(stadium(27).rents[5], euros)) // alquiler con tribuna
+      expect(w.text()).not.toContain(formatNumber(stadium(27).rents[5]))
       await camp.trigger('mouseleave')
 
       // volver a pesetas

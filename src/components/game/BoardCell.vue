@@ -2,7 +2,8 @@
 import { computed } from 'vue'
 import { gridCell } from '../../lib/boardGeometry'
 import { imageUrl } from '../../lib/assets'
-import {fmt, PLAYER_COLORS} from '../../lib/colors'
+import { PLAYER_COLORS } from '../../lib/colors'
+import { useMoney } from '../../lib/useMoney'
 import { isProperty, type Player, type PropertyState } from '../../engine/game'
 import type { Square } from '../../engine/types'
 import BuildingStrip from './BuildingStrip.vue'
@@ -12,6 +13,7 @@ import PawnIcon from './PawnIcon.vue'
 const props = defineProps<{ sq: Square; state?: PropertyState; pawns: Player[]; currentId: number }>()
 const emit = defineEmits<{ hover: [position: number | null] }>()
 
+const { money } = useMoney()
 const cell = computed(() => gridCell(props.sq.position))
 const stadiumFaceClass = computed(() => `stadium-face--${cell.value.side}`)
 
@@ -67,7 +69,7 @@ const flipped = computed(() => cell.value.side === 'top' ? 'rotate-180' : '')
           <p class="text-[10px] font-bold uppercase text-center pt-1.5 pb-5">{{sq.short}}</p>
           <p class="text-[10px] font-normal capitalize text-center">{{sq.part}}</p>
           <p class="text-[10px] font-normal capitalize text-center">{{sq.name}}</p>
-          <p class="text-[10px] font-bold text-center">{{fmt(sq.price)}}</p>
+          <p class="text-[10px] font-bold text-center">{{ money(sq.price) }}</p>
         </div>
         <div v-if="sq.colors.style !== 3" class="h-2.5" :class="sq.colors.bottom">
         </div>

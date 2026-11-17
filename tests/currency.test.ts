@@ -5,6 +5,7 @@ import {
 } from '../src/lib/currency'
 import { useSettingsStore } from '../src/stores/settings'
 import { buy, createGame, roll } from '../src/engine/game'
+import { stadium } from './data'
 
 // La fórmula de tu utils.ts original: Math.ceil((price / 166.386) * (1 + coefficient)), coeficiente 35,79
 const original = (price: number, coefficient = 35.79) => Math.ceil((price / 166.386) * (1 + coefficient))
@@ -57,7 +58,7 @@ describe('conversión a euros con inflación', () => {
     g.players[0].position = 3
     g.phase = 'buy'
     buy(g)
-    expect(g.log.at(-1)).toBe('Ana compra Benito Villamarín por [[8000]].')
+    expect(g.log.at(-1)).toBe(`Ana compra ${stadium(2).name} por [[${stadium(2).price}]].`)
     expect(g.log.some((l) => /\d\.\d{3}/.test(l.replace(/\[\[\d+\]\]/g, '')) && !l.includes('carta'))).toBe(false)
   })
 })

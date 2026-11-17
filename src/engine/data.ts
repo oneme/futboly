@@ -13,6 +13,44 @@ import type {
   StadiumRents,
 } from './types'
 
+/** Un alquiler tal como viene en los JSON. */
+export interface RentJson { title: string; rent: number }
+export interface StadiumJson {
+  id: number
+  name: string
+  team: string
+  short?: string
+  rents: RentJson[]
+  mortgage: number
+  build: number
+  price: number
+  type: number
+  path?: string // opcional: sin imagen, la casilla se construye desde el JSON
+  colors: { top: string; bottom: string; style: number }
+}
+export interface ServiceJson { id: number; name: string; rents: RentJson[]; mortgage: number; price: number; type: number; path: string; card: string }
+export interface DepartmentJson { name: string; quantity: number; type: number; path: string }
+export interface CardJson { text: string; action: { method: string; args: unknown[] } }
+
+/** Todo lo que define una edición del tablero (equipos, servicios, departamentos y su orden). */
+export interface BoardData {
+  estadios: StadiumJson[]
+  concesiones: ServiceJson[]
+  servicios: ServiceJson[]
+  departamentos: DepartmentJson[]
+  layout: string[]
+}
+export interface CardData { federacion: CardJson[]; sorpresa: CardJson[] }
+
+export const DEFAULT_BOARD_DATA: BoardData = {
+  estadios: estadiosRaw as StadiumJson[],
+  concesiones: concesionesRaw as ServiceJson[],
+  servicios: serviciosRaw as ServiceJson[],
+  departamentos: departamentosRaw as DepartmentJson[],
+  layout,
+}
+export const DEFAULT_CARD_DATA: CardData = { federacion: federacionRaw as CardJson[], sorpresa: sorpresaRaw as CardJson[] }
+
 /**
  * departamentos.json no distingue el tipo real de cada casilla (type 0 mezcla
  * Salida, multas, Banquillo...), así que lo fijamos aquí por índice del JSON.
@@ -36,28 +74,29 @@ const DEPARTMENT_KINDS: DepartmentKind[] = [
  * Construye el tablero de 40 casillas siguiendo board-layout.json.
  * "P<n>" = propiedad con id n (numeración del manual), "D<n>" = departamento n del JSON.
  */
-export function buildBoard(): Square[] {
+export function buildBoard(data: BoardData = DEFAULT_BOARD_DATA): Square[] {
   const properties = new Map<number, (position: number) => Square>()
 
-  for (const s of estadiosRaw) {
+  for (const s of data.estadios) {
     properties.set(s.id, (position) => ({
       kind: 'stadium',
       position,
       id: s.id,
       name: s.name,
       team: s.team,
-      short: s.short,
+      short: s.short || s.team.toUpperCase(), // `short` va en estadios.json; si falta, el nombre del equipo
       part: s.type === 0 ? 'general' : 'tribuna',
       price: s.price,
       mortgage: s.mortgage,
       buildCost: s.build,
       rents: s.rents.map((r) => r.rent) as StadiumRents,
       rentLabels: s.rents.map((r) => r.title),
-      image: s.path,
+      // La imagen es opcional: sin `path` (estadios_new.json) la casilla se construye desde el JSON
+      image: (s as { path?: string }).path ?? '',
       colors: s.colors,
     }))
   }
-  for (const s of concesionesRaw) {
+  for (const s of data.concesiones) {
     properties.set(s.id, (position) => ({
       kind: 'stadiumService',
       position,
@@ -71,7 +110,7 @@ export function buildBoard(): Square[] {
       cardImage: s.card,
     }))
   }
-  for (const s of serviciosRaw) {
+  for (const s of data.servicios) {
     properties.set(s.id, (position) => ({
       kind: 'clubService',
       position,
@@ -86,14 +125,14 @@ export function buildBoard(): Square[] {
     }))
   }
 
-  return layout.map((token, position) => {
+  return data.layout.map((token, position) => {
     const n = Number(token.slice(1))
     if (token[0] === 'P') {
       const make = properties.get(n)
       if (!make) throw new Error(`Layout: no existe la propiedad con id ${n}`)
       return make(position)
     }
-    const d = departamentosRaw[n]
+    const d = data.departamentos[n]
     if (!d) throw new Error(`Layout: no existe el departamento ${n}`)
     return {
       kind: DEPARTMENT_KINDS[n],
@@ -137,12 +176,12 @@ function normalizeAction(
   }
 }
 
-export function loadCards(board: Square[]): { federation: Card[]; surprise: Card[] } {
+export function loadCards(board: Square[], cards: CardData = DEFAULT_CARD_DATA): { federation: Card[]; surprise: Card[] } {
   const jail = board.find((s) => s.kind === 'jail')!.position
-  const map = (deck: Card['deck'], raw: typeof federacionRaw): Card[] =>
+  const map = (deck: Card['deck'], raw: CardJson[]): Card[] =>
     raw.map((c) => ({ deck, text: c.text, action: normalizeAction(c.action, jail) }))
   return {
-    federation: map('federation', federacionRaw),
-    surprise: map('surprise', sorpresaRaw as typeof federacionRaw),
+    federation: map('federation', cards.federacion),
+    surprise: map('surprise', cards.sorpresa),
   }
 }
