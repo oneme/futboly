@@ -10,7 +10,10 @@ import { money } from './money'
  *  - Una IA puede proponer tratos (`aiProposeTrade`): compra la concesión que le completa un grupo.
  *    Si el otro jugador es una IA se resuelve al instante; si es humano queda como `state.proposal`
  *    y el humano responde con `answerProposal`.
- *  - `proposeTrade` es la vía para un humano que ofrece un trato a una IA.
+ *  - `proposeTrade` es la vía para un humano que ofrece un trato a una IA (la IA solo acepta o rechaza).
+ *  - `negotiate` es lo mismo con CONTRAOFERTA: si la IA rechaza, puede devolver una contraoferta (`state.proposal`)
+ *    pidiendo más dinero; el humano la acepta, la rechaza o contraofertea con `counterProposal`.
+ *    Tras `MAX_COUNTER_ROUNDS` contraofertas la última oferta ya solo se acepta o se rechaza.
  */
 
 // ---------- Valoración ----------
@@ -123,6 +126,87 @@ export function proposeTrade(s: GameState, offer: TradeOffer): boolean {
   s.log.push(`${responder.name} acepta la propuesta de ${nameOf(s, offer.from)}.`)
   execute(s, offer)
   return true
+}
+
+// ---------- Contraofertas ----------
+
+export const MAX_COUNTER_ROUNDS = 3
+export type NegotiationResult = 'accepted' | 'rejected' | 'countered'
+
+/** La misma oferta vista desde el otro lado (quien recibe pasa a ser quien propone). */
+export const mirrorOffer = (o: TradeOffer, round = o.round ?? 0): TradeOffer => ({
+  from: o.to, to: o.from, fromPositions: o.toPositions, toPositions: o.fromPositions,
+  fromCash: o.toCash, toCash: o.fromCash, round,
+})
+
+/**
+ * Contraoferta de la IA (`offer.to`) a una oferta que no le convence: mismas concesiones, pero pide al otro jugador
+ * el mínimo de dinero extra (en pasos de 500) que la hace aceptable. null si no hay forma razonable.
+ */
+export function counterOffer(s: GameState, offer: TradeOffer): TradeOffer | null {
+  const traded = [...offer.fromPositions, ...offer.toPositions].reduce(
+    (n, pos) => n + (s.board[pos] as PropertySquare).price, 0)
+  const net = offer.fromCash - offer.toCash // dinero que va hacia la IA
+  const cap = Math.max(0, -net) + Math.max(10_000, 2 * traded) // si pagaba ella, hasta bajar a 0 y un tope más
+  for (let extra = 500; extra <= cap; extra += 500) {
+    const n = net + extra
+    const c: TradeOffer = { ...offer, fromCash: Math.max(n, 0), toCash: Math.max(-n, 0) }
+    if (s.players[c.from].money < c.fromCash) return null // al otro jugador ya no le llega el dinero
+    if (canTrade(s, c)) continue
+    if (evaluateOffer(s, offer.to, c)) return c
+  }
+  return null
+}
+
+/** Una IA responde a una oferta: acepta, contraofrece (deja `state.proposal`) o rechaza. */
+function respond(s: GameState, offer: TradeOffer): NegotiationResult {
+  const ai = s.players[offer.to]
+  const human = nameOf(s, offer.from)
+  if (evaluateOffer(s, offer.to, offer)) {
+    s.log.push(`${ai.name} acepta la propuesta de ${human}.`)
+    execute(s, offer)
+    return 'accepted'
+  }
+  const round = offer.round ?? 0
+  const counter = round < MAX_COUNTER_ROUNDS ? counterOffer(s, offer) : null
+  if (counter) {
+    s.proposal = mirrorOffer(counter, round + 1)
+    s.log.push(`${ai.name} rechaza la oferta de ${human} y contraofrece: da ${describeSide(s, counter.toPositions, counter.toCash)} y pide ${describeSide(s, counter.fromPositions, counter.fromCash)}.`)
+    emit(s, 'trade')
+    return 'countered'
+  }
+  s.log.push(`${ai.name} rechaza la propuesta de ${human}.`)
+  for (const pos of offer.fromPositions) s.tradeCooldown[cooldownKey(offer.to, pos)] = s.turnCount + COOLDOWN_TURNS
+  return 'rejected'
+}
+
+/** Un humano ofrece un trato a una IA, que puede aceptar, rechazar o contraofertar. */
+export function negotiate(s: GameState, offer: TradeOffer): NegotiationResult {
+  const err = canTrade(s, offer)
+  if (err) throw new Error(err)
+  if (!s.players[offer.to].ai) throw new Error('Los tratos entre humanos se cierran directamente con trade()')
+  if (s.proposal) throw new Error('Hay una propuesta pendiente')
+  return respond(s, offer)
+}
+
+/** ¿Puede el humano contraofertar a la propuesta pendiente? */
+export const canCounter = (s: GameState): boolean => !!s.proposal && (s.proposal.round ?? 0) < MAX_COUNTER_ROUNDS
+
+/**
+ * El humano contraofertea a la propuesta pendiente de una IA con otra oferta (`counter.from` = el humano,
+ * `counter.to` = la IA). La IA la acepta, la rechaza o vuelve a contraofertar.
+ */
+export function counterProposal(s: GameState, counter: TradeOffer): NegotiationResult {
+  const pending = s.proposal
+  if (!pending) throw new Error('No hay ninguna propuesta pendiente')
+  if (!canCounter(s)) throw new Error('Ya no se admiten más contraofertas')
+  if (counter.from !== pending.to || counter.to !== pending.from) throw new Error('La contraoferta debe ir al jugador que propuso')
+  const err = canTrade(s, counter)
+  if (err) throw new Error(err)
+  s.proposal = null
+  const next: TradeOffer = { ...counter, round: (pending.round ?? 0) + 1 }
+  s.log.push(`${nameOf(s, next.from)} contraofrece a ${nameOf(s, next.to)}: da ${describeSide(s, next.fromPositions, next.fromCash)} y pide ${describeSide(s, next.toPositions, next.toCash)}.`)
+  return respond(s, next)
 }
 
 /** El humano al que una IA ha hecho una propuesta la acepta o la rechaza. */

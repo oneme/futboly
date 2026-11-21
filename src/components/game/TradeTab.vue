@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useMatchStore } from '../../stores/match'
-import { isProperty } from '../../engine/game'
 import type { TradeOffer } from '../../engine/management'
-import type { PropertySquare } from '../../engine/types'
-import PropertyChip from './PropertyChip.vue'
+import TradeEditor from './TradeEditor.vue'
 import { useMoney } from '../../lib/useMoney'
 
-const { money, euros } = useMoney()
+const { money } = useMoney()
 
 const props = defineProps<{ pid: number }>()
 const store = useMatchStore()
@@ -47,9 +45,6 @@ watch(to, (value) => {
   if (value !== null) result.value = '' // al elegir otro jugador se borra el último resultado
 })
 
-const ownedBy = (id: number) =>
-  g.value.board.filter((sq): sq is PropertySquare => isProperty(sq) && g.value.properties[sq.position].owner === id)
-
 const offer = computed<TradeOffer | null>(() =>
   to.value === null
     ? null
@@ -70,9 +65,12 @@ function submit() {
   if (!offer.value || error.value) return
   if (partnerAI.value) {
     const name = g.value.players[offer.value.to].name
-    const accepted = store.proposeToAI(offer.value)
+    const answer = store.negotiate(offer.value)
     reset()
-    result.value = accepted ? `${name} (IA) acepta el trato.` : `${name} (IA) rechaza la propuesta.`
+    result.value =
+      answer === 'accepted' ? `${name} (IA) acepta el trato.`
+      : answer === 'countered' ? `${name} (IA) rechaza tu oferta y te hace una contraoferta.`
+      : `${name} (IA) rechaza la propuesta.`
     return
   }
   store.trade(offer.value)
@@ -105,39 +103,13 @@ function sellCard() {
         </select>
       </div>
 
-      <div v-if="to !== null" class="grid gap-3 sm:grid-cols-2">
-        <div class="rounded-lg border border-slate-200 p-2">
-          <h3 class="mb-1 text-sm font-semibold">{{ g.players[pid].name }} ofrece</h3>
-          <label v-for="sq in ownedBy(pid)" :key="sq.position" class="flex items-center gap-2 py-0.5 text-sm">
-            <input v-model="mine" type="checkbox" :value="sq.position" />
-            <PropertyChip :sq="sq" :mortgaged="g.properties[sq.position].mortgaged" />
-          </label>
-          <p v-if="!ownedBy(pid).length" class="text-xs text-slate-500">Sin concesiones.</p>
-          <label class="mt-2 flex items-center gap-2 text-sm">
-            Dinero (Ptas.) <input v-model.number="myCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
-            <span v-if="euros && myCash > 0" class="text-xs text-slate-500">≈ {{ money(myCash) }}</span>
-          </label>
-        </div>
-
-        <div class="rounded-lg border border-slate-200 p-2">
-          <h3 class="mb-1 text-sm font-semibold">{{ g.players[to].name }} ofrece</h3>
-          <label v-for="sq in ownedBy(to)" :key="sq.position" class="flex items-center gap-2 py-0.5 text-sm">
-            <input v-model="theirs" type="checkbox" :value="sq.position" />
-            <PropertyChip :sq="sq" :mortgaged="g.properties[sq.position].mortgaged" />
-          </label>
-          <p v-if="!ownedBy(to).length" class="text-xs text-slate-500">Sin concesiones.</p>
-          <label class="mt-2 flex items-center gap-2 text-sm">
-            Dinero (Ptas.) <input v-model.number="theirCash" type="number" min="0" step="500" :class="[field, 'w-28']" />
-            <span v-if="euros && theirCash > 0" class="text-xs text-slate-500">≈ {{ money(theirCash) }}</span>
-          </label>
-        </div>
-      </div>
+      <TradeEditor v-if="to !== null" v-model:mine="mine" v-model:theirs="theirs" v-model:my-cash="myCash" v-model:their-cash="theirCash" :from="pid" :to="to" />
 
       <div class="flex flex-wrap items-center gap-3">
         <button :class="btnPrimary" :disabled="!!error" @click="submit">
           {{ partnerAI ? 'Proponer a la IA' : 'Aceptar intercambio' }}
         </button>
-        <span v-if="partnerAI" class="text-xs text-violet-700">La IA valorará la oferta y responderá al momento.</span>
+        <span v-if="partnerAI" class="text-xs text-violet-700">La IA valorará la oferta y responderá al momento: puede aceptar, rechazar o contraofertar.</span>
         <span v-if="error && to !== null" class="text-xs text-amber-700">{{ error }}</span>
         <span v-if="result" class="text-sm font-medium text-slate-700">{{ result }}</span>
       </div>

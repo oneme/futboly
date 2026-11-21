@@ -370,8 +370,8 @@
   {
     "id": 22,
     "name": "La Cerámica",
-    "team": "Villareal C.F",
-    "short": "Villareal",
+    "team": "Villarreal C.F",
+    "short": "Villarreal",
     "rents": [
       {"title": "zona sin asientos", "rent": 5000},
       {"title": "con 1 silla", "rent": 20200},
@@ -393,8 +393,8 @@
   {
     "id": 23,
     "name": "La Cerámica",
-    "team": "Villareal C.F",
-    "short": "Villareal",
+    "team": "Villarreal C.F",
+    "short": "Villarreal",
     "rents": [
       {"title": "zona sin asientos", "rent": 5300},
       {"title": "con 1 silla", "rent": 21400},

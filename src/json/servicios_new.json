@@ -1,0 +1,40 @@
+[
+  {
+    "id": 8,
+    "name": "Material Deportivo",
+    "rents": [
+      {
+        "title": "Si tiene 1 servicio del Club\nValor de los dados x",
+        "rent": 400
+      },
+      {
+        "title": "Si tiene 2 servicios del Club\nValor de los dados x",
+        "rent": 1000
+      }
+    ],
+    "mortgage": 7500,
+    "price": 15000,
+    "type": 3,
+    "icon": "kit",
+    "color": "#1c8cad"
+  },
+  {
+    "id": 21,
+    "name": "Autocares",
+    "rents": [
+      {
+        "title": "Si tiene 1 servicio del Club\nValor de los dados x",
+        "rent": 400
+      },
+      {
+        "title": "Si tiene 2 servicios del Club\nValor de los dados x",
+        "rent": 1000
+      }
+    ],
+    "mortgage": 7500,
+    "price": 15000,
+    "type": 3,
+    "icon": "bus",
+    "color": "#92b05b"
+  }
+]

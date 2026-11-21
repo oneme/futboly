@@ -21,7 +21,7 @@ const bottomClass = computed(() => {
   if (!bottom) return 'bg-white text-black'
   return /(^|\s)text-/.test(bottom) ? bottom : `${bottom} text-black`
 })
-const serviceBg = computed(() => SERVICE_COLORS[props.sq.name] ?? DEFAULT_SERVICE_COLOR)
+const serviceBg = computed(() => (props.sq.kind !== 'stadium' && props.sq.color) || SERVICE_COLORS[props.sq.name] || DEFAULT_SERVICE_COLOR)
 const text = computed(() => {
   if (props.label !== undefined) return props.label
   return stadium.value ? `${stadium.value.name} (${stadium.value.part === 'general' ? 'G' : 'T'})` : props.sq.name

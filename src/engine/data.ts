@@ -28,8 +28,12 @@ export interface StadiumJson {
   path?: string // opcional: sin imagen, la casilla se construye desde el JSON
   colors: { top: string; bottom: string; style: number }
 }
-export interface ServiceJson { id: number; name: string; rents: RentJson[]; mortgage: number; price: number; type: number; path: string; card: string }
-export interface DepartmentJson { name: string; quantity: number; type: number; path: string }
+export interface ServiceJson {
+  id: number; name: string; rents: RentJson[]; mortgage: number; price: number; type: number
+  path?: string; card?: string // opcionales: sin imagen, la casilla se dibuja con `icon` y `color`
+  icon?: string; color?: string
+}
+export interface DepartmentJson { name: string; quantity: number; type: number; path?: string; icon?: string }
 export interface CardJson { text: string; action: { method: string; args: unknown[] } }
 
 /** Todo lo que define una edición del tablero (equipos, servicios, departamentos y su orden). */
@@ -92,7 +96,7 @@ export function buildBoard(data: BoardData = DEFAULT_BOARD_DATA): Square[] {
       rents: s.rents.map((r) => r.rent) as StadiumRents,
       rentLabels: s.rents.map((r) => r.title),
       // La imagen es opcional: sin `path` (estadios_new.json) la casilla se construye desde el JSON
-      image: (s as { path?: string }).path ?? '',
+      image: s.path ?? '',
       colors: s.colors,
     }))
   }
@@ -106,8 +110,10 @@ export function buildBoard(data: BoardData = DEFAULT_BOARD_DATA): Square[] {
       mortgage: s.mortgage,
       rentByOwned: s.rents.map((r) => r.rent),
       rentLabels: s.rents.map((r) => r.title),
-      image: s.path,
-      cardImage: s.card,
+      image: s.path ?? '',
+      cardImage: s.card ?? '',
+      icon: s.icon,
+      color: s.color,
     }))
   }
   for (const s of data.servicios) {
@@ -120,8 +126,10 @@ export function buildBoard(data: BoardData = DEFAULT_BOARD_DATA): Square[] {
       mortgage: s.mortgage,
       diceMultiplierByOwned: s.rents.map((r) => r.rent),
       rentLabels: s.rents.map((r) => r.title),
-      image: s.path,
-      cardImage: s.card,
+      image: s.path ?? '',
+      cardImage: s.card ?? '',
+      icon: s.icon,
+      color: s.color,
     }))
   }
 
@@ -138,8 +146,9 @@ export function buildBoard(data: BoardData = DEFAULT_BOARD_DATA): Square[] {
       kind: DEPARTMENT_KINDS[n],
       position,
       name: d.name,
-      image: d.path,
+      image: d.path ?? '',
       amount: d.quantity,
+      icon: d.icon,
     }
   })
 }

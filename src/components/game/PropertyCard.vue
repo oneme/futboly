@@ -15,9 +15,13 @@ const { money } = useMoney()
  */
 const props = defineProps<{ sq: PropertySquare; state?: PropertyState; ownerName?: string }>()
 
-const cardBg = computed(() =>
-  props.sq.kind === 'stadium' ? '' : `background-image: url('${imageUrl(props.sq.cardImage)}')`,
-)
+const cardBg = computed(() => {
+  if (props.sq.kind === 'stadium') return ''
+  const url = imageUrl(props.sq.cardImage)
+  return url ? `background-image: url('${url}')` : ''
+})
+// Sin imagen de tarjeta (edición actual): borde superior con el color del servicio.
+const serviceColor = computed(() => (props.sq.kind === 'stadium' ? '' : (props.sq.color ?? '')))
 const detail = computed(() => {
   const s = props.state
   if (!s) return ''
@@ -65,7 +69,7 @@ const detail = computed(() => {
     <div
       v-else-if="sq.kind === 'stadiumService'"
       class="rounded-sm bg-white bg-contain bg-center bg-no-repeat p-2"
-      :style="cardBg"
+      :style="[cardBg, serviceColor ? { borderTop: `10px solid ${serviceColor}` } : {}]"
     >
       <div class="flex flex-col rounded-sm border border-black p-1">
         <h1 class="text-center uppercase">servicios estadio</h1>
@@ -86,7 +90,7 @@ const detail = computed(() => {
     </div>
 
     <!-- Servicios de club (Material Deportivo, Autocares) -->
-    <div v-else class="rounded-sm bg-white bg-contain bg-center bg-no-repeat p-2" :style="cardBg">
+    <div v-else class="rounded-sm bg-white bg-contain bg-center bg-no-repeat p-2" :style="[cardBg, serviceColor ? { borderTop: `10px solid ${serviceColor}` } : {}]">
       <div class="flex flex-col rounded-sm border border-black p-1">
         <h1 class="mt-4 text-center font-semibold uppercase">{{ sq.name }}</h1>
         <hr class="mx-2 my-4 bg-black" />

@@ -1,0 +1,110 @@
+[
+  {
+    "id": 3,
+    "name": "Videomarcador",
+    "rents": [
+      {
+        "title": "si tiene 1 servicio",
+        "rent": 2500
+      },
+      {
+        "title": "si tiene 2 servicios",
+        "rent": 5000
+      },
+      {
+        "title": "si tiene 3 servicios",
+        "rent": 10000
+      },
+      {
+        "title": "si tiene 4 servicios",
+        "rent": 20000
+      }
+    ],
+    "mortgage": 10000,
+    "price": 20000,
+    "type": 2,
+    "icon": "scoreboard",
+    "color": "#1f3a5f"
+  },
+  {
+    "id": 11,
+    "name": "Merchandising",
+    "rents": [
+      {
+        "title": "si tiene 1 servicio",
+        "rent": 2500
+      },
+      {
+        "title": "si tiene 2 servicios",
+        "rent": 5000
+      },
+      {
+        "title": "si tiene 3 servicios",
+        "rent": 10000
+      },
+      {
+        "title": "si tiene 4 servicios",
+        "rent": 20000
+      }
+    ],
+    "mortgage": 10000,
+    "price": 20000,
+    "type": 2,
+    "icon": "merch",
+    "color": "#2196d1"
+  },
+  {
+    "id": 18,
+    "name": "Restauración",
+    "rents": [
+      {
+        "title": "si tiene 1 servicio",
+        "rent": 2500
+      },
+      {
+        "title": "si tiene 2 servicios",
+        "rent": 5000
+      },
+      {
+        "title": "si tiene 3 servicios",
+        "rent": 10000
+      },
+      {
+        "title": "si tiene 4 servicios",
+        "rent": 20000
+      }
+    ],
+    "mortgage": 10000,
+    "price": 20000,
+    "type": 2,
+    "icon": "food",
+    "color": "#e4a21c"
+  },
+  {
+    "id": 26,
+    "name": "Publicidad",
+    "rents": [
+      {
+        "title": "si tiene 1 servicio",
+        "rent": 2500
+      },
+      {
+        "title": "si tiene 2 servicios",
+        "rent": 5000
+      },
+      {
+        "title": "si tiene 3 servicios",
+        "rent": 10000
+      },
+      {
+        "title": "si tiene 4 servicios",
+        "rent": 20000
+      }
+    ],
+    "mortgage": 10000,
+    "price": 20000,
+    "type": 2,
+    "icon": "ads",
+    "color": "#7c3aed"
+  }
+]

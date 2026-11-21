@@ -87,17 +87,30 @@ npm test                # pruebas de interfaz (vitest + jsdom)
   eliminados ordenados por quién aguantó más, datos curiosos y botón de **Revancha** con los mismos jugadores y reglas.
 - **Colores de las cartas** (`main.css`): Federación en verde y Sorpresa en morado, borde oscuro y fondo claro.
 
-### Importes en euros con inflación
+### Ediciones: clásica y actual
 
-El motor trabaja siempre en pesetas; la interfaz puede mostrar los importes en euros con la fórmula del `utils.ts` original:
-`euros = ceil(pesetas / 166,386 · (1 + coeficiente))`, con coeficiente 35,79 por defecto (editable).
+Se elige en la pantalla de inicio y se guarda en las reglas de la partida (`rules.edition`, `rules.inflation`), así que la
+revancha y las partidas guardadas mantienen su edición (las antiguas se cargan como clásica). `src/engine/editions.ts` las define.
 
-- Se elige en la pantalla de inicio o con el selector "Importes" del panel lateral, y se guarda en el navegador
-  (`src/stores/settings.ts`). Cambia el dinero de los jugadores, las tarjetas de precios, las pujas, las cartas y el registro.
-- El registro lo escribe el motor con marcadores (`[[6000]]`, `src/engine/money.ts`) para poder cambiar de moneda
-  también en las líneas ya escritas (`src/lib/currency.ts`).
-- Las cantidades que se escriben a mano (pujas, intercambios) siguen siendo en pesetas y muestran su equivalente.
-- Las cifras impresas en las imágenes de las casillas no se pueden convertir y siguen en pesetas.
+| Edición | Datos | Aspecto | Importes |
+|---|---|---|---|
+| **Clásica (1982)** | `estadios.json`, `concesiones.json`, `servicios.json`, `departamentos.json`, `federacion.json`, `sorpresa.json` | Tablero original con sus imágenes | Pesetas |
+| **Actual** | los mismos con sufijo `_new` | Todas las casillas se dibujan desde el JSON (sin imágenes de estadios, servicios ni Salida/Multa/Parking/Día del Club) | Euros con inflación |
+
+- La edición actual renombra los servicios de estadio: Gorras → **Merchandising**, Bares → **Restauración**,
+  Almohadillas → **Videomarcador** (Publicidad se mantiene). Federación, Sorpresa, Banquillo y Vaya al Banquillo conservan su imagen.
+- Los servicios sin `path` se dibujan con `icon` y `color` (`SquareIcon.vue`, `ServiceSquareView.vue`); los departamentos sin
+  `path`, con `icon` (`DepartmentSquareView.vue`). Iconos: `scoreboard, merch, food, ads, kit, bus, start, fine, club, parking`.
+- Euros: `euros = ceil(pesetas / 166,386 · (1 + coeficiente))`, coeficiente 35,79 por defecto (editable al elegir la edición actual).
+  El motor trabaja siempre en pesetas; el registro usa marcadores (`[[6000]]`, `src/engine/money.ts`) que la interfaz convierte
+  (`src/lib/currency.ts`, `src/lib/useMoney.ts`). Las cantidades escritas a mano (pujas, tratos) son en pesetas y muestran su equivalente.
+
+### Tratos y contraofertas
+
+- Un humano ofrece un trato a una IA desde **Gestionar → Intercambios**: la IA acepta, rechaza o **contraofrece** (mismas concesiones,
+  pidiendo el mínimo dinero extra que le compensa). La contraoferta aparece como una propuesta que se acepta, se rechaza o se contraofertea.
+- Cuando una IA propone un trato al humano, este puede **Contraofertar**: edita concesiones y dinero (`TradeEditor.vue`) y la IA responde.
+- Hay como máximo 3 contraofertas (`MAX_COUNTER_ROUNDS` en `src/engine/trading.ts`); la última oferta solo se acepta o se rechaza.
 
 ### Datos y ediciones (`src/json/`)
 
@@ -107,7 +120,7 @@ El tablero y los equipos salen de los JSON; el motor y la interfaz no tienen nin
 |---|---|
 | `estadios.json` / `estadios_new.json` | Equipos y estadios: `team`, `short` (nombre corto de la casilla), `name` (estadio), `type` (0 General, 1 Tribuna), precios, alquileres, hipoteca, `build` y `colors` |
 | `federacion*.json`, `sorpresa*.json` | Cartas; los `move` usan posiciones 1 a 40 (0 = Salida) |
-| `concesiones.json`, `servicios.json`, `departamentos.json` | Servicios de estadio, de club y casillas especiales |
+| `concesiones*.json`, `servicios*.json`, `departamentos*.json` | Servicios de estadio, de club y casillas especiales (en `_new`, con `icon` y `color` en vez de imágenes) |
 | `board-layout.json` | Orden de las 40 casillas (`P<id>` concesión, `D<n>` departamento) |
 
 `colors` de un estadio: `top` son las clases de las franjas (`"bg-green-1000,bg-white"`), `style` el dibujo (4 o más = ese
@@ -121,5 +134,4 @@ npm run team-colors     # regenera src/assets/team-colors.css (se ejecuta solo a
 
 **Añadir o cambiar un equipo**: editar las dos entradas del equipo en `estadios.json` (General y Tribuna, mismo `team`, `short`
 y `colors`), ajustar el texto de las cartas que lo mencionen y ejecutar `npm run validate-data`. Las clases de color nuevas
-se detectan solas. **Cambiar de edición**: sustituir `estadios.json`, `federacion.json` y `sorpresa.json` por las `_new`
-y ejecutar `npm run team-colors`.
+se detectan solas. Para cambiar los equipos de la edición actual, editar los `_new` (el validador revisa las dos ediciones).

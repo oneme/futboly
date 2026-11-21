@@ -8,6 +8,8 @@ import { isProperty, type Player, type PropertyState } from '../../engine/game'
 import type { Square } from '../../engine/types'
 import BuildingStrip from './BuildingStrip.vue'
 import PawnIcon from './PawnIcon.vue'
+import ServiceSquareView from './ServiceSquareView.vue'
+import DepartmentSquareView from './DepartmentSquareView.vue'
 
 /** Una casilla del tablero, a escala 1 (el tablero entero se escala desde BoardView). */
 const props = defineProps<{ sq: Square; state?: PropertyState; pawns: Player[]; currentId: number }>()
@@ -81,6 +83,21 @@ const flipped = computed(() => cell.value.side === 'top' ? 'rotate-180' : '')
           </div>
         </div>
       </div>
+      <!-- Sin imagen (edición actual): servicios y departamentos se dibujan desde los datos -->
+      <template v-if="!imageUrl(sq.image)">
+        <div
+          v-if="sq.kind === 'stadiumService' || sq.kind === 'clubService'"
+          class="stadium-face" :class="stadiumFaceClass" draggable="false"
+        >
+          <ServiceSquareView :sq="sq" />
+        </div>
+        <template v-else-if="sq.kind !== 'stadium' && sq.icon">
+          <DepartmentSquareView v-if="cell.corner" :sq="sq" wide />
+          <div v-else class="stadium-face" :class="stadiumFaceClass" draggable="false">
+            <DepartmentSquareView :sq="sq" />
+          </div>
+        </template>
+      </template>
       <img
           v-if="imageUrl(sq.image)"
           :src="imageUrl(sq.image)"

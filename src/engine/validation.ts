@@ -62,6 +62,22 @@ export function validateEdition(data: BoardData, cards: CardData): ValidationRes
   }
   check(![...byTeam.values()].some((l) => l.length !== 2), `${byTeam.size} equipos con General y Tribuna`, 'Hay equipos sin pareja General/Tribuna')
 
+  // ----- Servicios y departamentos: imagen, o icono (+ color en servicios) para dibujarlos -----
+  const KNOWN_ICONS = new Set(['scoreboard', 'merch', 'food', 'ads', 'kit', 'bus', 'start', 'fine', 'club', 'parking'])
+  const drawable: string[] = []
+  for (const s of [...data.concesiones, ...data.servicios]) {
+    if (!s.path) {
+      if (!s.icon || !KNOWN_ICONS.has(s.icon)) problems.push(`${s.name} (id ${s.id}): sin imagen necesita un "icon" conocido (${[...KNOWN_ICONS].join(', ')})`)
+      else if (!/^#[0-9a-f]{6}$/i.test(s.color ?? '')) problems.push(`${s.name} (id ${s.id}): sin imagen necesita un "color" #rrggbb`)
+      else drawable.push(s.name)
+    }
+    if (s.path && !s.card) problems.push(`${s.name} (id ${s.id}): tiene imagen de casilla pero no de tarjeta ("card")`)
+  }
+  data.departamentos.forEach((d, i) => {
+    if (!d.path && (!d.icon || !KNOWN_ICONS.has(d.icon))) problems.push(`Departamento D${i} (${d.name}): necesita "path" o un "icon" conocido`)
+  })
+  check(!problems.some((p) => /necesita|sin imagen|tarjeta/.test(p)), 'Servicios y departamentos: todos tienen imagen o icono' + (drawable.length ? ` (dibujados: ${drawable.join(', ')})` : ''), 'Hay servicios o departamentos sin imagen ni icono')
+
   // ----- Cartas -----
   for (const [name, list] of [['Federación', cards.federacion], ['Sorpresa', cards.sorpresa]] as const) {
     check(list.length === 16, `${name}: 16 cartas`, `${name}: ${list.length} cartas (deberían ser 16)`)

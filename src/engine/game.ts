@@ -1,4 +1,6 @@
 import { buildBoard, loadCards } from './data'
+import { DEFAULT_INFLATION } from '../lib/currency'
+import { EDITIONS, type Edition } from './editions'
 import type { AILevel } from './aiProfiles'
 import type { Card, DepartmentSquare, PropertySquare, Square, TradeOffer } from './types'
 import { money } from './money'
@@ -42,8 +44,12 @@ export interface GameRules {
    * cuando la Banca ya no tiene títulos. Desactivada por defecto: se puede intercambiar siempre.
    */
   tradeOnlyWhenBankEmpty: boolean
+  /** Edición del tablero: clásica (pesetas, imágenes) o actual (euros, casillas desde los JSON). */
+  edition: Edition
+  /** Coeficiente de inflación (solo en la edición actual). */
+  inflation: number
 }
-export const DEFAULT_RULES: GameRules = { tradeOnlyWhenBankEmpty: false }
+export const DEFAULT_RULES: GameRules = { tradeOnlyWhenBankEmpty: false, edition: 'classic', inflation: DEFAULT_INFLATION }
 
 /** Estadísticas de cada jugador para el resumen final. */
 export interface PlayerStats {
@@ -140,15 +146,18 @@ function shuffle<T>(arr: T[], rng: () => number) {
 
 export function createGame(
   specs: (string | PlayerSpec)[],
-  board: Square[] = buildBoard(),
+  board?: Square[],
   rng: () => number = Math.random,
   rules: Partial<GameRules> = {},
 ): GameState {
+  const fullRules: GameRules = { ...DEFAULT_RULES, ...rules }
+  const edition = EDITIONS[fullRules.edition] ?? EDITIONS.classic
+  board ??= buildBoard(edition.board)
   if (specs.length < 2 || specs.length > 6) throw new Error('De 2 a 6 jugadores')
   const properties: Record<number, PropertyState> = {}
   for (const sq of board)
     if (isProperty(sq)) properties[sq.position] = { owner: null, seats: 0, stand: false, mortgaged: false }
-  const decks = loadCards(board)
+  const decks = loadCards(board, edition.cards)
   shuffle(decks.federation, rng)
   shuffle(decks.surprise, rng)
   return {
@@ -177,7 +186,7 @@ export function createGame(
     log: [],
     events: [],
     eventCount: 0,
-    rules: { ...DEFAULT_RULES, ...rules },
+    rules: fullRules,
     proposal: null,
     turnCount: 0,
     tradeCooldown: {},

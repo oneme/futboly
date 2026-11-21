@@ -16,6 +16,9 @@ import { byId, posOf, stadium, stadiumWhere, stripeClasses } from './data'
 import { readFileSync } from 'node:fs'
 import estadios from '../src/json/estadios.json'
 import { useMatchStore } from '../src/stores/match'
+import { EDITIONS } from '../src/engine/editions'
+import type { GameRules } from '../src/engine/game'
+import type { StadiumSquare } from '../src/engine/types'
 
 describe('GameView', () => {
   beforeEach(() => { localStorage.clear(); setActivePinia(createPinia()) })
@@ -309,6 +312,51 @@ describe('GameView', () => {
       expect(s.log.some((l) => l.startsWith('Trato cerrado'))).toBe(true)
     })
 
+    it('contraoferta: el humano modifica la propuesta de la IA y la IA responde', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      const s = store.state!
+      s.properties[1].owner = 1
+      s.properties[3].owner = 0
+      s.current = 1
+      await vi.advanceTimersByTimeAsync(3_000)
+      expect(s.proposal).toBeTruthy()
+      const original = { ...s.proposal! }
+      expect(w.find('[data-counter]').exists()).toBe(true)
+      expect(w.find('[data-counter-editor]').exists()).toBe(false)
+
+      await w.find('[data-counter]').trigger('click')
+      const editor = w.find('[data-counter-editor]')
+      expect(editor.exists()).toBe(true)
+      // prellenado: el humano entrega lo que la IA pedía y pide lo que ofrecía
+      expect((editor.find('[data-their-cash]').element as HTMLInputElement).value).toBe(String(original.fromCash))
+      // pide un 50% más
+      await editor.find('[data-their-cash]').setValue(Math.ceil((original.fromCash * 1.5) / 500) * 500)
+      await w.find('[data-send-counter]').trigger('click')
+      expect(s.log.some((l) => l.includes('Humano contraofrece a Robot'))).toBe(true)
+      // la IA acepta, rechaza o vuelve a contraofertar (ronda 2): en cualquier caso la propuesta original ya no está
+      expect(s.proposal === null || s.proposal.round === 2).toBe(true)
+    })
+
+    it('contraoferta: tras la última ronda solo se puede aceptar o rechazar', async () => {
+      const pinia = createPinia()
+      setActivePinia(pinia)
+      const w = mount(GameView, { global: { plugins: [pinia] } })
+      const store = useMatchStore()
+      store.start([{ name: 'Humano' }, { name: 'Robot', ai: true }])
+      const s = store.state!
+      s.proposal = { from: 1, to: 0, fromPositions: [], toPositions: [3], fromCash: 20_000, toCash: 0, round: 3 }
+      s.properties[3].owner = 0
+      await w.vm.$nextTick()
+      expect(w.text()).toContain('última oferta')
+      expect(w.find('[data-counter]').exists()).toBe(false)
+      expect(w.find('[data-accept]').exists()).toBe(true)
+      expect(w.find('[data-reject]').exists()).toBe(true)
+    })
+
     it('un humano propone un trato a una IA desde el gestor y ella responde', async () => {
       const pinia = createPinia()
       setActivePinia(pinia)
@@ -329,7 +377,11 @@ describe('GameView', () => {
       await cash.setValue(5_000) // oferta tacaña
       const propose = () => w.findAll('button').find((b) => b.text().includes('Proponer a la IA'))!
       await propose().trigger('click')
-      expect(w.text()).toContain('rechaza la propuesta')
+      expect(w.text()).toContain('rechaza tu oferta y te hace una contraoferta') // la IA contraofrece pidiendo más
+      expect(w.text()).toContain('Robot te hace una contraoferta')
+      expect(s.properties[gorras].owner).toBe(1)
+      await w.find('[data-reject]').trigger('click') // el humano la rechaza
+      expect(s.proposal).toBeNull()
       expect(s.properties[gorras].owner).toBe(1)
 
       await selects[selects.length - 1].setValue(1)
@@ -638,101 +690,114 @@ describe('GameView', () => {
     })
   })
 
-  describe('importes en euros con inflación', () => {
+  describe('ediciones: clásica (pesetas, imágenes) y actual (euros, casillas desde los JSON)', () => {
+    const cur = EDITIONS.current.board
     const euros = { euros: true, inflation: 35.79 }
-    const setup = async () => {
+    const curBoard = buildBoard(cur)
+    const curById = (id: number) => curBoard.find((x) => 'id' in x && x.id === id) as StadiumSquare
+    const setup = async (rules: Partial<GameRules> = {}) => {
       const pinia = createPinia()
       setActivePinia(pinia)
       const w = mount(GameView, { global: { plugins: [pinia] } })
       const store = useMatchStore()
-      store.start(['Ana', 'Beto'])
+      store.start(['Ana', 'Beto'], rules)
       await w.vm.$nextTick()
-      const clickText = async (text: string) =>
-        w.findAll('button').find((b) => b.text() === text)!.trigger('click')
-      return { w, store, clickText }
+      return { w, store }
     }
 
-    it('por defecto en pesetas; el selector del panel cambia dinero, tarjetas, registro y cartas', async () => {
-      const { w, store, clickText } = await setup()
+    it('la edición clásica usa pesetas y las imágenes; no dibuja casillas de servicio', async () => {
+      const { w, store } = await setup()
+      expect(store.state!.rules.edition).toBe('classic')
       expect(w.text()).toContain('150.000')
-      expect(w.find('[data-currency]').text()).toContain('Importes')
+      expect(w.find('[data-service-square]').exists()).toBe(false)
+      expect(w.find('[data-department]').exists()).toBe(false)
+      expect(w.find('[data-edition-info]').text()).toContain('Clásica')
+    })
 
-      // genera una línea de registro con un importe: Ana compra Betis Tribuna (8.000)
+    it('la edición actual usa los JSON nuevos: euros, servicios renombrados y casillas dibujadas', async () => {
+      const { w, store } = await setup({ edition: 'current' })
+      const s = store.state!
+      expect(s.board.filter((x) => x.kind === 'stadiumService').map((x) => x.name).sort())
+        .toEqual(['Merchandising', 'Publicidad', 'Restauración', 'Videomarcador'])
+      expect(s.board.some((x) => x.kind === 'stadium' && x.team === 'Villarreal C.F')).toBe(true)
+      expect(w.text()).toContain(formatMoney(150_000, euros))
+      expect(w.text()).not.toContain('150.000')
+      const services = w.findAll('[data-service-square]')
+      expect(services.length).toBe(6)
+      expect(services.map((x) => x.attributes('data-name')).sort()).toContain('Videomarcador')
+      const videomarcador = services.find((x) => x.attributes('data-name') === 'Videomarcador')!
+      expect(videomarcador.attributes('data-price')).toBe(formatMoney(20_000, euros)) // precio recalculado, no impreso
+      const deps = w.findAll('[data-department]').map((x) => x.attributes('data-name'))
+      expect(deps).toEqual(expect.arrayContaining(['Salida', 'Parking', 'Multa y Cierre del Estadio']))
+    })
+
+    it('registro, tarjeta de precios y cartas se convierten en la edición actual', async () => {
+      const { w, store } = await setup({ edition: 'current' })
       const s = store.state!
       s.players[0].position = 3
       s.phase = 'buy'
       store.buy()
       await w.vm.$nextTick()
-      expect(w.text()).toContain(`compra ${stadium(2).name} por ${formatNumber(stadium(2).price)}.`)
+      const bought = s.board[3] as StadiumSquare
+      expect(w.text()).toContain(`compra ${bought.name} por ${formatMoney(bought.price, euros)}.`)
 
-      await clickText('€ con inflación')
-      expect(w.text()).toContain(formatMoney(142_000, euros)) // dinero de Ana tras comprar
-      expect(w.text()).not.toContain('150.000')
-      expect(w.text()).toContain(`compra ${stadium(2).name} por ${formatMoney(stadium(2).price, euros)}.`) // el registro se convierte
-      expect(w.text()).toContain('Importes') // y el aviso de las imágenes
-      expect(w.text()).toContain('siguen en pesetas')
-
-      // tarjeta de precios al pasar el ratón
-      const camp = w.findAll(`[title="${stadium(27).name}"]`).find((e) => e.element.tagName === 'DIV')!.find('div')
+      const target = curById(27)
+      const camp = w.findAll(`[title="${target.name}"]`).find((e) => e.element.tagName === 'DIV')!.find('div')
       await camp.trigger('mouseenter')
-      expect(w.text()).toContain(formatMoney(stadium(27).rents[5], euros)) // alquiler con tribuna
-      expect(w.text()).not.toContain(formatNumber(stadium(27).rents[5]))
+      expect(w.text()).toContain(formatMoney(target.rents[5], euros))
       await camp.trigger('mouseleave')
 
-      // volver a pesetas
-      await clickText('Ptas.')
-      expect(w.text()).toContain('142.000')
-    })
-
-    it('el coeficiente de inflación es editable y se aplica al instante', async () => {
-      const { w, store, clickText } = await setup()
-      await clickText('€ con inflación')
-      const coef = w.find('[data-currency] input[type=number]')
-      await coef.setValue(0) // sin inflación: 150.000 ptas = 902 €
-      expect(w.text()).toContain(formatMoney(150_000, { euros: true, inflation: 0 }))
-      expect(toEuros(150_000, 0)).toBe(902)
-      expect(useSettingsStore().options).toEqual({ euros: true, inflation: 0 })
-      await coef.setValue('') // vacío: vuelve al coeficiente por defecto
-      expect(w.text()).toContain(formatMoney(150_000, euros))
-      expect(store.state!.players[0].money).toBe(150_000) // el motor sigue en pesetas
-    })
-
-    it('los textos de las cartas convierten sus importes', async () => {
-      const { w, store, clickText } = await setup()
-      await clickText('€ con inflación')
-      const s = store.state!
       const card = s.decks.federation.find((c) => c.text.includes('20.000'))!
       s.card = { deck: 'federation', card }
       s.phase = 'card'
       await w.vm.$nextTick()
-      expect(w.text()).toContain('€')
       expect(w.text()).toContain(formatMoney(20_000, euros))
     })
 
+    it('el coeficiente de la partida se guarda en las reglas y manda sobre las preferencias', async () => {
+      const { w, store } = await setup({ edition: 'current', inflation: 0 })
+      expect(w.text()).toContain(formatMoney(150_000, { euros: true, inflation: 0 }))
+      expect(toEuros(150_000, 0)).toBe(902)
+      expect(store.state!.players[0].money).toBe(150_000) // el motor sigue en pesetas
+      store.rematch() // la revancha mantiene edición e inflación
+      expect(store.state!.rules).toMatchObject({ edition: 'current', inflation: 0 })
+    })
+
     it('las cantidades escritas a mano siguen en pesetas y muestran su equivalente', async () => {
-      const { w, store, clickText } = await setup()
-      await clickText('€ con inflación')
+      const { w, store } = await setup({ edition: 'current' })
       const s = store.state!
       s.players[0].position = 3
       s.phase = 'buy'
-      store.declineBuy() // subasta
+      store.declineBuy()
       await w.vm.$nextTick()
       const input = w.find('input[placeholder="Otra (Ptas.)"]')
       await input.setValue(3_000)
       expect(w.text()).toContain(`≈ ${formatMoney(3_000, euros)}`)
       await w.findAll('button').find((b) => b.text() === 'Pujar')!.trigger('click')
-      expect(s.auction!.bid).toBe(3_000) // la puja se hace en pesetas
+      expect(s.auction!.bid).toBe(3_000)
     })
 
-    it('la pantalla de inicio permite elegir euros y el coeficiente', async () => {
+    it('una partida guardada sin edición se carga como clásica', async () => {
+      const { store } = await setup()
+      const s = JSON.parse(JSON.stringify(store.state))
+      delete s.rules.edition
+      delete s.rules.inflation
+      localStorage.setItem('futboly-save', JSON.stringify(s))
+      store.continueSaved()
+      expect(store.state!.rules).toMatchObject({ edition: 'classic', inflation: 35.79 })
+    })
+
+    it('la pantalla de inicio permite elegir la edición y el coeficiente solo en la actual', async () => {
+      localStorage.clear()
       const pinia = createPinia()
       setActivePinia(pinia)
       const w = mount(GameView, { global: { plugins: [pinia] } })
       expect(w.text()).not.toContain('Coeficiente de inflación')
-      const box = w.findAll('label').find((l) => l.text().includes('en euros con inflación'))!.find('input')
-      await box.setValue(true)
+      await w.find('[data-edition="current"]').setValue(true)
       expect(w.text()).toContain('Coeficiente de inflación')
-      expect(useSettingsStore().euros).toBe(true)
+      expect(useSettingsStore().edition).toBe('current')
+      await w.findAll('button').find((b) => b.text().includes('Empezar'))!.trigger('click')
+      expect(useMatchStore().state!.rules.edition).toBe('current')
     })
   })
 })

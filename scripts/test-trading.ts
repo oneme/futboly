@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { aiStep } from '../src/engine/ai'
 import { createGame, endTurn, roll, type GameState } from '../src/engine/game'
-import { answerProposal, evaluateOffer, proposeTrade } from '../src/engine/trading'
+import { MAX_COUNTER_ROUNDS, answerProposal, canCounter, counterProposal, evaluateOffer, negotiate, proposeTrade } from '../src/engine/trading'
 import type { TradeOffer } from '../src/engine/types'
 
 let passed = 0
@@ -14,6 +14,7 @@ const posOf = (g: GameState, id: number) => g.board.findIndex((x) => 'id' in x &
 const offer = (o: Partial<TradeOffer>): TradeOffer => ({
   from: 0, to: 1, fromPositions: [], toPositions: [], fromCash: 0, toCash: 0, ...o,
 })
+const mirror = (o: TradeOffer): TradeOffer => ({ from: o.to, to: o.from, fromPositions: o.toPositions, toPositions: o.fromPositions, fromCash: o.toCash, toCash: o.fromCash })
 /** Humano (0) y robot (1). */
 const duel = () => createGame([{ name: 'Humano' }, { name: 'Robot', ai: true }])
 
@@ -161,6 +162,108 @@ test('Partidas de IAs: hacen tratos entre ellas y siguen terminando', () => {
   console.log(`      ${deals} tratos cerrados en ${total} partidas; ${finished}/${total} terminaron`)
   assert.ok(deals > 0, 'las IAs deberían cerrar algún trato')
   assert.ok(finished / total > 0.6)
+})
+
+// ---------- Contraofertas ----------
+
+test('Contraoferta de la IA: pide más dinero, el humano acepta y el trato se cierra con ese importe', () => {
+  const g = duel()
+  const gorras = posOf(g, 11) // 20.000
+  g.properties[gorras].owner = 1
+  assert.equal(negotiate(g, offer({ fromCash: 5_000, toPositions: [gorras] })), 'countered')
+  const p = g.proposal!
+  assert.equal(p.from, 1) // ahora propone la IA
+  assert.equal(p.to, 0)
+  assert.deepEqual(p.fromPositions, [gorras])
+  assert.equal(p.toCash > 5_000, true)
+  assert.equal(p.round, 1)
+  assert.equal(g.properties[gorras].owner, 1) // aún no se ha cerrado nada
+  // lo que pide la IA es lo mínimo que le sale a cuenta: aceptable para ella y no tacaño
+  assert.equal(evaluateOffer(g, 1, { ...mirror(p) }), true)
+  assert.equal(evaluateOffer(g, 1, { ...mirror(p), fromCash: mirror(p).fromCash - 500 }), false)
+  const pay = p.toCash
+  answerProposal(g, true)
+  assert.equal(g.properties[gorras].owner, 0)
+  assert.equal(g.players[0].money, 150_000 - pay)
+  assert.equal(g.players[1].money, 150_000 + pay)
+})
+
+test('Sin contraoferta posible (el humano no tiene dinero) la IA simplemente rechaza', () => {
+  const g = duel()
+  const gorras = posOf(g, 11)
+  g.properties[gorras].owner = 1
+  g.players[0].money = 5_000
+  assert.equal(negotiate(g, offer({ fromCash: 3_000, toPositions: [gorras] })), 'rejected')
+  assert.equal(g.proposal, null)
+})
+
+test('El humano contraofertea a la propuesta de una IA y la IA acepta si le conviene', () => {
+  const g = duel()
+  const a = posOf(g, 1)
+  const b = posOf(g, 2)
+  g.properties[a].owner = 1
+  g.properties[b].owner = 0
+  // la IA propone comprar b con 20.000 (propuesta suya)
+  g.proposal = offer({ from: 1, to: 0, toPositions: [b], fromCash: 20_000 })
+  assert.equal(canCounter(g), true)
+  // contraoferta absurda: pide la concesión de la IA gratis -> la IA no acepta
+  assert.throws(() => counterProposal(g, offer({ from: 1, to: 0 })), /contraoferta debe ir/)
+  assert.equal(g.proposal !== null, true) // el error no consume la propuesta
+  const res = counterProposal(g, offer({ from: 0, to: 1, fromPositions: [b], toCash: 90_000 }))
+  assert.notEqual(res, 'accepted') // 90.000 por una concesión que le completa grupo: no
+  // la IA o rechaza o devuelve una contraoferta de ronda 2
+  if (res === 'countered') assert.equal(g.proposal!.round, 2)
+  else assert.equal(g.proposal, null)
+})
+
+test('Una contraoferta razonable del humano se acepta al momento', () => {
+  const g = duel()
+  const gorras = posOf(g, 11)
+  g.properties[gorras].owner = 0
+  // la IA propone comprar Gorras (20.000) por 10.000; el humano pide 16.000 (dentro de su límite) y la IA acepta
+  g.proposal = offer({ from: 1, to: 0, toPositions: [gorras], fromCash: 10_000 })
+  const res = counterProposal(g, offer({ from: 0, to: 1, fromPositions: [gorras], toCash: 16_000 }))
+  assert.equal(res, 'accepted')
+  assert.equal(g.players[0].money, 150_000 + 16_000)
+  assert.equal(g.properties[gorras].owner, 1)
+  assert.equal(g.proposal, null)
+  assert.ok(g.log.some((l) => l.includes('contraofrece')))
+})
+
+test('Si el humano pide demasiado, la IA le devuelve una contraoferta más baja', () => {
+  const g = duel()
+  const gorras = posOf(g, 11)
+  g.properties[gorras].owner = 0
+  g.proposal = offer({ from: 1, to: 0, toPositions: [gorras], fromCash: 10_000 })
+  const res = counterProposal(g, offer({ from: 0, to: 1, fromPositions: [gorras], toCash: 60_000 }))
+  assert.equal(res, 'countered')
+  const p = g.proposal!
+  assert.equal(p.from, 1)
+  assert.equal(p.fromCash < 60_000 && p.fromCash > 0, true) // la IA ofrece menos de lo pedido, pero algo
+  assert.equal(p.round, 2)
+  assert.equal(g.properties[gorras].owner, 0)
+})
+
+test('Las contraofertas tienen un límite: la última oferta solo se acepta o se rechaza', () => {
+  const g = duel()
+  const gorras = posOf(g, 11)
+  g.properties[gorras].owner = 1
+  g.proposal = offer({ from: 1, to: 0, fromPositions: [gorras], toCash: 21_000, round: MAX_COUNTER_ROUNDS })
+  assert.equal(canCounter(g), false)
+  assert.throws(() => counterProposal(g, offer({ from: 0, to: 1 })), /Ya no se admiten/)
+  // y una oferta inicial con rondas agotadas no vuelve a generar contraoferta
+  const h = duel()
+  const g2 = posOf(h, 11)
+  h.properties[g2].owner = 1
+  assert.equal(negotiate(h, offer({ fromCash: 2_000, toPositions: [g2], round: MAX_COUNTER_ROUNDS })), 'rejected')
+})
+
+test('negotiate valida: IA al otro lado y sin propuesta pendiente', () => {
+  const g = createGame([{ name: 'A' }, { name: 'B' }])
+  assert.throws(() => negotiate(g, offer({ fromCash: 1_000 })), /humanos/)
+  const h = duel()
+  h.proposal = offer({ from: 1, to: 0, fromCash: 1_000 })
+  assert.throws(() => negotiate(h, offer({ fromCash: 1_000 })), /pendiente/)
 })
 
 console.log(`\n${passed} pruebas correctas`)

@@ -2,17 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { DEFAULT_BOARD_DATA, DEFAULT_CARD_DATA, buildBoard, type BoardData, type CardData } from '../src/engine/data'
 import { validateEdition } from '../src/engine/validation'
-import estadiosNew from '../src/json/estadios_new.json'
-import federacionNew from '../src/json/federacion_new.json'
-import sorpresaNew from '../src/json/sorpresa_new.json'
+import { EDITIONS } from '../src/engine/editions'
 // @ts-expect-error módulo .mjs sin tipos
 import { collectTeamColorClasses, renderTeamColorsCss } from '../scripts/team-colors.mjs'
 
 const classic: [BoardData, CardData] = [DEFAULT_BOARD_DATA, DEFAULT_CARD_DATA]
-const current: [BoardData, CardData] = [
-  { ...DEFAULT_BOARD_DATA, estadios: estadiosNew as BoardData['estadios'] },
-  { federacion: federacionNew as CardData['federacion'], sorpresa: sorpresaNew as CardData['sorpresa'] },
-]
+const current: [BoardData, CardData] = [EDITIONS.current.board, EDITIONS.current.cards]
 const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x))
 
 describe('validación de las ediciones de datos', () => {

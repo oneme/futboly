@@ -272,6 +272,11 @@ export const useMatchStore = defineStore('match', () => {
     trade: (offer: TradeOffer) => mgmt.trade(g(), offer),
     /** Un humano ofrece un trato a una IA: devuelve true si lo acepta. */
     proposeToAI: (offer: TradeOffer) => trading.proposeTrade(g(), offer),
+    /** Como proposeToAI, pero la IA puede contraofertar: 'accepted' | 'rejected' | 'countered'. */
+    negotiate: (offer: TradeOffer) => trading.negotiate(g(), offer),
+    /** El humano contraofertea a la propuesta pendiente de una IA. */
+    counterProposal: (counter: TradeOffer) => trading.counterProposal(g(), counter),
+    canCounter: () => trading.canCounter(g()),
     /** El humano responde a la propuesta de una IA. */
     answerProposal: (accept: boolean) => trading.answerProposal(g(), accept),
     sellJailCard: (from: number, to: number, index: number, price: number) =>

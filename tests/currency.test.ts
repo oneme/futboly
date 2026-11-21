@@ -72,14 +72,21 @@ describe('preferencias de moneda', () => {
   it('por defecto pesetas y el coeficiente original; se guardan en el navegador', async () => {
     const s = useSettingsStore()
     expect(s.options).toEqual({ euros: false, inflation: 35.79 })
-    s.euros = true
+    s.edition = 'current'
     s.inflation = 12.5
     await Promise.resolve()
-    expect(JSON.parse(localStorage.getItem('futboly-settings')!)).toEqual({ euros: true, inflation: 12.5 })
+    expect(JSON.parse(localStorage.getItem('futboly-settings')!)).toEqual({ edition: 'current', inflation: 12.5 })
 
     // una sesión nueva las recupera
     setActivePinia(createPinia())
     expect(useSettingsStore().options).toEqual({ euros: true, inflation: 12.5 })
+  })
+
+  it('las preferencias antiguas { euros: true } pasan a la edición actual', () => {
+    localStorage.setItem('futboly-settings', JSON.stringify({ euros: true, inflation: 20 }))
+    setActivePinia(createPinia())
+    expect(useSettingsStore().edition).toBe('current')
+    expect(useSettingsStore().options).toEqual({ euros: true, inflation: 20 })
   })
 
   it('un coeficiente vacío, negativo o no numérico vuelve al valor por defecto', () => {

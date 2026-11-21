@@ -27,6 +27,8 @@ export interface DepartmentSquare extends SquareBase {
   kind: DepartmentKind
   /** Salida: cobro. Penalty/Parking: pago. Banquillo: multa para salir. */
   amount: number
+  /** Icono para dibujar la casilla cuando no hay imagen (edición actual). */
+  icon?: string
 }
 
 /** [sin asientos, 1, 2, 3, 4 asientos, con tribuna] */
@@ -55,6 +57,9 @@ export interface StadiumServiceSquare extends SquareBase {
   price: number
   mortgage: number
   cardImage: string
+  /** Sin imagen: icono y color con los que se dibuja la casilla (edición actual). */
+  icon?: string
+  color?: string
   /** Alquiler según cuántos servicios de estadio posea el dueño (índice 0 = 1 servicio). */
   rentByOwned: number[]
   rentLabels: string[]
@@ -67,6 +72,8 @@ export interface ClubServiceSquare extends SquareBase {
   price: number
   mortgage: number
   cardImage: string
+  icon?: string
+  color?: string
   /** Multiplicador de los dados según servicios de club poseídos (índice 0 = 1 servicio). */
   diceMultiplierByOwned: number[]
   rentLabels: string[]
@@ -90,6 +97,8 @@ export interface TradeOffer {
   toPositions: number[]
   fromCash: number
   toCash: number
+  /** Nº de contraofertas ya cruzadas en esta negociación (0 = oferta inicial). */
+  round?: number
 }
 
 // ---------- Cartas ----------
